@@ -14,6 +14,6 @@
     },
     "files": [
         "index.d.ts",
-        "SAMPLE-tests.ts"
+        "n3-tests.ts"
     ]
 }

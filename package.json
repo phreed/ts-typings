@@ -1,16 +1,15 @@
 {
-  "name": "@types/SAMPLE",
+  "name": "@types/n3",
   "version": "0.8.1",
-  "description": "A set of TypeScript definitions for SAMPLE",
+  "description": "A set of TypeScript definitions for N3",
   "main": "",
   "typings": "index.d.ts",
   "files": [
-    "index.d.ts",
-    "types-metadata.json"
+    "index.d.ts"
   ],
   "keywords": [
     "typescript",
-    "SAMPLE",
+    "n3",
     "defininition"
   ],
   "directories": {
