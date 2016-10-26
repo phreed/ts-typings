@@ -1,15 +1,21 @@
 {
-  "name": "@types/SAMPLE",
-  "version": "0.8.1",
-  "description": "A set of TypeScript definitions for SAMPLE",
+  "name": "@types/webgme",
+  "version": "2.6.0",
+  "description": "A set of TypeScript definitions for webgme",
   "main": "",
   "typings": "index.d.ts",
   "files": [
-    "index.d.ts"
+    "index.d.ts",
+    "text.d.ts",
+    "webgme-blob.d.ts",
+    "webgme-util.d.ts",
+    "webgme-core.d.ts",
+    "webgme-config.d.ts",
+    "webgme-v1.d.ts"
   ],
   "keywords": [
     "typescript",
-    "SAMPLE",
+    "webgme",
     "defininition"
   ],
   "directories": {

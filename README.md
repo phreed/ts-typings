@@ -1,26 +1,3 @@
-# typescript-typings
-Each branch represents a different set of typescript typings that I am working on.
-
-To create a new set of typings...
-
-   git checkout master
-   git checkout -b <new-project-name>
-
-   edit the files as needed (see below for hints)
-   git commit -m 'initial commit of sample'
-
-The projects that have been previously commited 
-are good samples of the types of edits you will need 
-for your porject.
-
-   git difftool master n3 
-
-## N3
-
-Lightning fast, spec-compatible, streaming RDF for JavaScript.
-
- * https://github.com/RubenVerborgh/N3.js
-
 ## webgme
 
 Web based generic modeling environment.
@@ -28,11 +5,5 @@ Web based generic modeling environment.
  * https://webgme.org/
  * https://github.com/webgme/webgme
 
-## Cytoscape
-
-Graph theory (a.k.a. network) library for analysis and visualisation.
-
- * http://js.cytoscape.org/
- * https://github.com/cytoscape/cytoscape.js
-
+A framework for developing modeling environments.
 

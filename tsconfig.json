@@ -14,6 +14,6 @@
     },
     "files": [
         "index.d.ts",
-        "SAMPLE-tests.ts"
+        "webgme-tests.ts"
     ]
 }
