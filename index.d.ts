@@ -45,6 +45,191 @@ declare module "common/util/assert" {
     export = Util.ASSERT;
 }
 
+declare module "js/PanelBase/PanelBase" {
+    export = PanelBase.PanelBase;
+}
+
+declare module "js/PanelBase/PanelBaseWithHeader" {
+    export = PanelBase.PanelBaseWithHeader;
+}
+
+
+declare const WebGMEGlobal: Global.WebGmeGlobal;
+
+declare namespace Global {
+    interface History {
+        value: boolean;
+        writable: boolean;
+        enumerable: boolean;
+        configurable: boolean;
+    }
+    interface WebGmeGlobal {
+        gmeConfig: Config.GmeConfig;
+        getConfig(): Config.GmeConfig;
+
+        State?: State;
+        PanelManager?: PanelBase.PanelManager;
+        KeyboardManager?: KeyboardManager;
+        LayoutManager?: PanelBase.LayoutManager;
+        Toolbar?: Toolbar.Toolbar;
+        userInfo?: UserInfo;
+        history?: History;
+        NpmVersion?: string;
+        GitHubVersion?: string;
+        version?: string;
+    }
+
+    class UserInfo {
+        _id: string;
+    }
+
+    interface StateOptions {
+        silent: boolean;
+    }
+    class State {
+        set(update: State): void;
+
+        registerActiveBranchName(branchName: string): void;
+        registerActiveCommit(activeCommitHash: Common.MetadataHash): void;
+        registerActiveVisualizer(vizualizer: Visualize.Visualizer): void;
+        registerSuppressVisualizerFromNode(register: boolean): void;
+
+        registerActiveObject(nodePath: Common.Path): void;
+        getActiveObject(): any;
+
+        registerLayout(layout: PanelBase.Layout): void;
+
+        clear(options?: StateOptions): void;
+        toJSON(): any;
+    }
+    class KeyboardManager {
+        setEnabled(action: boolean): void;
+        setListener(): void;
+    }
+}
+
+declare namespace Toolbar {
+    interface Params {
+
+    }
+    interface ToolbarItem {
+
+    }
+    interface ToolbarParams {
+
+    }
+    class ToolbarButton {
+        constructor();
+    }
+    class ToolbarSeparator {
+        constructor();
+    }
+    class ToolbarRadioButtonGroup {
+        constructor();
+    }
+    class ToolbarToggleButton {
+        constructor();
+    }
+    class ToolbarTextBox {
+        constructor();
+    }
+    class ToolbarLabel {
+        constructor();
+    }
+    class ToolbarCheckBox {
+        constructor();
+    }
+    class ToolbarDropDownButton {
+        constructor();
+    }
+    class ToolbarColorPicker {
+        constructor();
+    }
+    interface ClickFn {
+        (): void;
+    }
+    class Toolbar {
+        constructor(element: Element);
+        add(item: ToolbarItem): ToolbarButton;
+        addButton(params: Params): void;
+        addSeparator(): ToolbarSeparator;
+        addRadioButtonGroup(clickFn: ClickFn): ToolbarRadioButtonGroup;
+        addToggleButton(params: Params): ToolbarToggleButton;
+        addTextBox(params: Params): ToolbarTextBox;
+        addLabel(): ToolbarLabel;
+        addCheckBox(): ToolbarCheckBox;
+        addDropDownButton(params: Params): ToolbarDropDownButton;
+        addColorPicker(params: Params): ToolbarColorPicker;
+
+        refresh(): void;
+    }
+}
+
+declare namespace Visualize {
+    class Visualizer {
+    }
+}
+
+declare namespace PanelBase {
+    class Logger {
+        createLogger(name: string, options: Config.LogOptions): Logger;
+        createWithGmeConfig(name: string, gmeConfig: Config.GmeConfig): Logger;
+    }
+    interface Options {
+        LOGGER_INSTANCE_NAME: string;
+    }
+    interface OptionsWithHeader extends Options {
+        HEADER_TITLE: string;
+        FLOATING_TITLE: string;
+        NO_SCROLLING: string;
+    }
+    class Layout {
+
+    }
+    interface Params { }
+    interface Container { }
+    interface LayoutCallback {
+        (self: LayoutManager): void;
+    }
+    class LayoutManager {
+        _panels: PanelBase[];
+        _currentLayoutName: string;
+        _currentLayout: Layout;
+        _logger: Core.GmeLogger;
+        constructor();
+        loadLayout(layout: Layout, callback: LayoutCallback): void;
+        loadPanel(params: Params, callback: LayoutCallback): void;
+        addPanel(name: string, panel: PanelBase, container: Container): void;
+        removePanel(name: string): void;
+        setPanelReadOnly(readOnly: boolean): void;
+    }
+    class PanelManager {
+        constructor(client: any);
+
+    }
+    class PanelBase {
+        constructor(options: Options);
+        setSize(width: number, height: number): void;
+        onResize(width: number, height: number): void;
+
+        onReadOnlyChanged(isReadOnly: boolean): void;
+        setReadOnly(isReadOnly: boolean): void;
+        isReadOnly(): boolean;
+
+        afterAppend(): void;
+        setContainerUpdateFn(currentLayout: Layout, sizeUpdateFn: (layout: Layout) => number): void;
+
+        clear(): void;
+        destroy(): void;
+    }
+    class PanelBaseWithHeader extends PanelBase {
+        constructor(options: Options, layoutManger: LayoutManager);
+        initUI(options: OptionsWithHeader): void;
+        setTitle(text: string): void;
+    }
+}
+
+
 
 declare namespace Common {
 
@@ -59,6 +244,8 @@ declare namespace Common {
     export class Node {
         constructor();
     }
+
+    export type Path = string;
 
     export type DataObject = {}
     export type Buffer = GLbyte[];
@@ -859,6 +1046,8 @@ declare namespace Config {
        https://editor.webgme.org/docs/source/global.html#GmeConfig	
        https://github.com/webgme/webgme/blob/master/config/README.md
     */
+    export interface LogOptions { log: { level: string } }
+
     export class GmeConfig {
         constructor();
         /**  Add-on related settings. */
@@ -875,7 +1064,7 @@ declare namespace Config {
         /** Blob related settings. */
         blob: Blobs.ObjectBlob;
         /** Client related settings. */
-        client: { log: { level: string } };
+        client: LogOptions;
         /** Client related settings. */
         core: Core.Core;
         /** Enables debug mode. */
