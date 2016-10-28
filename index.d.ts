@@ -97,7 +97,7 @@ declare namespace Global {
         registerActiveBranchName(branchName: string): void;
         registerActiveCommit(activeCommitHash: Common.MetadataHash): void;
         registerActiveVisualizer(vizualizer: Visualize.Visualizer): void;
-        registerActiveSelection(selection: string): void;
+        registerActiveSelection(selection: string[]): void;
         registerSuppressVisualizerFromNode(register: boolean): void;
 
         registerActiveObject(nodePath: Common.Path): void;
@@ -227,6 +227,7 @@ declare namespace Panel {
     class PanelBase {
         OPTIONS: Options;
         logger: Core.GmeLogger;
+        control: any;
 
         constructor(options: Options);
         setSize(width: number, height: number): void;
