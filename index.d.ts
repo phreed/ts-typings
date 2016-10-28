@@ -110,7 +110,7 @@ declare namespace Global {
     }
     class KeyboardManager {
         setEnabled(action: boolean): void;
-        setListener(): void;
+        setListener(listener?: any): void;
     }
 }
 
