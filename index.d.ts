@@ -46,11 +46,15 @@ declare module "common/util/assert" {
 }
 
 declare module "js/PanelBase/PanelBase" {
-    export = PanelBase.PanelBase;
+    export = Panel.PanelBase;
 }
 
 declare module "js/PanelBase/PanelBaseWithHeader" {
-    export = PanelBase.PanelBaseWithHeader;
+    export = Panel.PanelBaseWithHeader;
+}
+
+declare module "js/PanelManager/IActivePanel" {
+    export = Panel.IActivePanel;
 }
 
 
@@ -68,9 +72,9 @@ declare namespace Global {
         getConfig(): Config.GmeConfig;
 
         State?: State;
-        PanelManager?: PanelBase.PanelManager;
+        PanelManager?: Panel.PanelManager;
         KeyboardManager?: KeyboardManager;
-        LayoutManager?: PanelBase.LayoutManager;
+        LayoutManager?: Panel.LayoutManager;
         Toolbar?: Toolbar.Toolbar;
         userInfo?: UserInfo;
         history?: History;
@@ -97,7 +101,7 @@ declare namespace Global {
         registerActiveObject(nodePath: Common.Path): void;
         getActiveObject(): any;
 
-        registerLayout(layout: PanelBase.Layout): void;
+        registerLayout(layout: Panel.Layout): void;
 
         clear(options?: StateOptions): void;
         toJSON(): any;
@@ -170,7 +174,15 @@ declare namespace Visualize {
     }
 }
 
-declare namespace PanelBase {
+declare namespace Panel {
+
+    interface IActivePanel {
+        setActive(isActive: boolean): void;
+        onActivate(): void;
+        onDeactivate(): void;
+        getNodeID(): string;
+    }
+
     class Logger {
         createLogger(name: string, options: Config.LogOptions): Logger;
         createWithGmeConfig(name: string, gmeConfig: Config.GmeConfig): Logger;
@@ -186,7 +198,9 @@ declare namespace PanelBase {
     class Layout {
 
     }
-    interface Params { }
+    interface Params {
+        client: any;
+    }
     interface Container { }
     interface LayoutCallback {
         (self: LayoutManager): void;
@@ -205,9 +219,11 @@ declare namespace PanelBase {
     }
     class PanelManager {
         constructor(client: any);
-
     }
     class PanelBase {
+        OPTIONS: Options;
+        logger: Core.GmeLogger;
+
         constructor(options: Options);
         setSize(width: number, height: number): void;
         onResize(width: number, height: number): void;
@@ -223,7 +239,9 @@ declare namespace PanelBase {
         destroy(): void;
     }
     class PanelBaseWithHeader extends PanelBase {
-        constructor(options: Options, layoutManger: LayoutManager);
+        OPTIONS: OptionsWithHeader;
+
+        constructor(options: OptionsWithHeader, layoutManger: LayoutManager);
         initUI(options: OptionsWithHeader): void;
         setTitle(text: string): void;
     }
@@ -846,7 +864,7 @@ declare namespace Core {
         If the second argument is true
         - the provided name will be used as is.
         */
-        fork(fmt: string, reuse: boolean): GmeLogger;
+        fork(fmt: string, reuse?: boolean): GmeLogger;
     }
     export interface ProjectInterface {
 
