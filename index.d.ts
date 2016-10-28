@@ -54,7 +54,8 @@ declare module "js/PanelBase/PanelBaseWithHeader" {
 }
 
 declare module "js/PanelManager/IActivePanel" {
-    export = Panel.IActivePanel;
+    var activePanel: Panel.IActivePanel;
+    export = activePanel;
 }
 
 
@@ -96,6 +97,7 @@ declare namespace Global {
         registerActiveBranchName(branchName: string): void;
         registerActiveCommit(activeCommitHash: Common.MetadataHash): void;
         registerActiveVisualizer(vizualizer: Visualize.Visualizer): void;
+        registerActiveSelection(selection: string): void;
         registerSuppressVisualizerFromNode(register: boolean): void;
 
         registerActiveObject(nodePath: Common.Path): void;
@@ -177,6 +179,7 @@ declare namespace Visualize {
 declare namespace Panel {
 
     interface IActivePanel {
+        control: any;
         setActive(isActive: boolean): void;
         onActivate(): void;
         onDeactivate(): void;
@@ -219,6 +222,7 @@ declare namespace Panel {
     }
     class PanelManager {
         constructor(client: any);
+        getActivePanel(): PanelBase;
     }
     class PanelBase {
         OPTIONS: Options;
