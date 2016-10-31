@@ -58,7 +58,163 @@ declare module "js/PanelManager/IActivePanel" {
     export = activePanel;
 }
 
+declare module "" {
+    var gmeConcepts: GME.GMEConcepts;
+    export = gmeConcepts;
+}
 
+declare namespace GME {
+    interface GMEConcepts {
+        isConnection(node: Common.Node): boolean;
+    }
+    interface ConnectionCallback {
+        (err: Error, connection: any): void;
+    }
+    interface Project {
+        name: string;
+        /** should always be true */
+        read: boolean;
+        write: boolean;
+        delete: boolean;
+        branches: {
+            [key: string]: string;
+        }
+    }
+    interface ProjectCallback {
+        (err: Error, projects: Project[] | { [key: string]: Project }): void;
+    }
+    interface OpenProjectCallback {
+        (err: Error, commit: any): void;
+    }
+
+    /**
+     * May be: 'load' 'update' 'unload'
+     */
+    interface Event {
+        etype: string;
+        eid: string;
+    }
+    /**
+     * The eventHandler is invoked whenever there are 
+     * changes to the nodes matching any of the patterns.
+     *  There are three cases when it is triggered:
+     *  1) updateTerritory was invoked by us.
+     *  2) Another client made changes to nodes within the territory.
+     *  3) We made changes to any of the nodes (via the setters).
+     */
+    interface TerritoryEventHandler {
+        (err: Error, event: Event[]): void;
+    }
+    interface ChildCreationParams {
+        parentId: string;
+        baseId: string;
+    }
+    interface TransactionResult {
+        hash: string;
+        /**
+         * may be: 'SYNCED' or 'FORKED'
+         */
+        status: string;
+    }
+    interface TransactionCallback {
+        (err: Error, result: TransactionResult): void;
+    }
+    interface AttributeSchema {
+        /** integer, float, asset, string */
+        type: string;
+        /** array of possible/allowed values */
+        enum: string[];
+    }
+    interface ChildType {
+        /**
+         * The id of the loaded new child type
+         */
+        id: string;
+        /**
+         * the minimum necessary amount of this type of child
+         */
+        min: number;
+        /**
+         * the maximum allowed children of this type
+         */
+        max: number;
+    }
+    interface PointerMeta {
+        /**
+         * the maximum allowed targets for a pointer is 1.
+         * more than 1 requires a set.
+         */
+        max: number;
+        items: { id: string }[];
+    }
+    class Client {
+        constructor();
+        /**
+         * Connecting to the webGME database.
+         */
+        connectToDatabase(callback: ConnectionCallback): void;
+        /**
+         * asIndexed true to get an object indexed by project ids.
+         */
+        getProjectsAndBranches(asIndexed: boolean, callback: ProjectCallback): void;
+        /**
+         * The client opens a project and a branch and 
+         * from there we can start registering for node events.
+         */
+        selectProject(projectId: string, branchName: string, callback: OpenProjectCallback): void;
+        /**
+         * Add a user associated with the pattern and an event-handler.
+         * The eventHandler will be invoked when the nodes within the territory,
+         * i.e. nodes matching any of the patterns, changes or on the initial
+         * load (updateTerritory).
+         * Returns the user-id.
+         */
+        addUI(pattern: any, eventHandler: TerritoryEventHandler): string;
+        updateTerritory(userId: string, patterns: any): void;
+        removeUI(userId: string): void;
+
+        /**
+         * Typically called from within the event-handler.
+         */
+        getNode(nodeId: Common.NodeId): Common.Node;
+        /**
+         * Get an array of all the META nodes as nodeObjs.
+         * Since these may change it is a good idea to invoke 
+         * this each time the territory of the root changes.
+         */
+        getAllMetaNodes(): Common.Node[];
+
+        setAttributes(nodeId: Common.NodeId, name: string, newName: string, message: string): void;
+        createChild(params: ChildCreationParams, message: string): void;
+        delMoreNodes(nodeIds: Common.NodeId[], message: string): void;
+
+        /**
+         * Transactions
+         */
+        startTransaction(message: string): void;
+        setRegistry(nodeId: Common.NodeId, attr: string, property: any, message: string): void;
+        completeTransaction(message: string, callback: TransactionCallback): void;
+
+        /**
+         * make a new pointer object.
+         * The source and target should already be loaded.
+         */
+        makePointer(sourceNodeId: Common.NodeId, pointerName: string, targetNodeId: Common.NodeId, message: string): Common.Pointer;
+        /**
+        * assign a node to a set
+        * The source and target should already be loaded.
+        */
+        addMember(sourceNodeId: Common.NodeId, targetNodeId: Common.NodeId, setName: string, message: string): Common.Pointer;
+
+        getAllMetaNodes(): Common.Node[];
+        setAttributeSchema(nodeId: string, name: string, schema: AttributeSchema): void;
+        updateValidChildrenItem(nodeId: Common.NodeId, type: ChildType): void
+
+        setPointerMeta(metaNodeId: Common.NodeId, newPointerName: string, meta: PointerMeta): void;
+
+    }
+
+}
 declare const WebGMEGlobal: Global.WebGmeGlobal;
 
 declare namespace Global {
@@ -119,13 +275,15 @@ declare namespace Toolbar {
 
     }
     interface ToolbarItem {
-
+        btnModelHierarchyUp: ToolbarButton;
     }
     interface ToolbarParams {
 
     }
     class ToolbarButton {
         constructor();
+        show(): void;
+        hide(): void;
     }
     class ToolbarSeparator {
         constructor();
@@ -221,7 +379,7 @@ declare namespace Panel {
         setPanelReadOnly(readOnly: boolean): void;
     }
     class PanelManager {
-        constructor(client: any);
+        constructor(client: GME.Client);
         getActivePanel(): PanelBase;
     }
     class PanelBase {
@@ -256,15 +414,127 @@ declare namespace Panel {
 
 declare namespace Common {
 
+    export interface Dictionary<T> {
+        [propName: string]: T;
+    }
+
     export type ISO8601 = string;
     export type ErrorStr = string;
     export type MetadataHash = string;
     export type MetadataHashArray = string[];
     export type ArtifactHash = string;
     export type Name = string;
+    export type NodeId = string;
+    export type MemberId = Path;
+    export type SetId = string;
+    export type GUID = string;
+    export type Registry = any;
+    export type CrosscutsInfo = Registry;
 
-    export type Metadata = {}
+    export type Metadata = { [key: string]: any };
+    export type Constraint = string;
+    export type AttrMeta = any;
+    export type Aspect = string;
+
+    export interface StorageCallback {
+        (err: Error): void;
+    }
+
+    /**
+     * https://github.com/webgme/webgme/blob/master/src/client/js/client/gmeNodeGetter.js
+     */
     export class Node {
+        constructor(id: string, logger: Core.GmeLogger, state: any, storeNode: StorageCallback);
+        getNode(id: NodeId, logger: Core.GmeLogger, state: any, storeNode: StorageCallback): Node;
+
+        getParentId(): NodeId;
+        getId(): NodeId;
+        getRelid(): NodeId;
+        getGuid(): GUID;
+        getChildrenIds(): NodeId[];
+        getBaseId(): NodeId;
+        isValidNewBase(basePath: Path): boolean;
+        isValidNewParent(parentPath: Path): boolean;
+        getInheritorIds(): NodeId[];
+        getAttribute(name: Name): OutAttr;
+        getOwnAttribute(name: Name): OutAttr;
+        getEditableAttribute(name: Name): OutAttr;
+        getOwnEditableAttribute(name: Name): OutAttr;
+        getRegistry(name: Name): Registry;
+        getOwnRegistry(name: Name): Registry;
+        getEditableRegistry(name: Name): Registry;
+        getOwnEditableRegistry(name: Name): Registry;
+
+        getPointer(name: Name): Pointer;
+        getPointerId(name: Name): SetId;
+        getOwnPointer(name: Name): Pointer;
+        getOwnPointerId(name: Name): SetId;
+        getPointerNames(): Name[];
+        getOwnPointerNames(): Name[];
+
+        getAttributeNames(): Name[];
+        getValidAttributeNames(): Name[];
+        getOwnAttributeNames(): Name[];
+        getOwnValidAttributeNames(): Name[];
+
+        getAttributeMeta(name: Name): AttrMeta;
+        getRegistryNames(): Name[];
+        getOwnRegistryNames(): Name[];
+
+        /** Set */
+        getMemberIds(setId: SetId): Path[];
+        getSetNames(): Name[];
+        getMemberAttributeNames(setId: SetId, memberId: MemberId): Name[];
+        getMemberAttribute(setId: SetId, memberId: MemberId): OutAttr;
+        getEditableMemberAttribute(setId: SetId, memberId: MemberId, name: Name): OutAttr;
+        getMemberRegistryNames(setId: SetId, memberId: MemberId): Name[];
+        getMemberRegistry(setId: SetId, memberId: MemberId, name: Name): Registry;
+        getEditableMemberRegistry(setId: SetId, memberId: MemberId, name: Name): Registry;
+
+        /** META */
+        getValidChildrenTypes(): NodeId[];
+        getValildAttributeNames(): Name[];
+        isValidAttributeValueOf(name: Name, value: any): boolean;
+        getValidPointerNames(): Name[];
+        getValidSetNames(): Name[];
+        getConstraintNames(): Name[];
+        getOwnConstraintNames(): Name[];
+        getConstraint(name: Name): Constraint;
+        toString(): string;
+
+        getCollectionPaths(name: Name): Path[];
+        getInstancePaths(): Path[];
+        getJsonMeta(): Metadata[];
+
+        isConnection(): boolean;
+        isAbstract(): boolean;
+        isLibraryRoot(): boolean;
+        isLibraryElement(): boolean;
+        getFullyQualifiedName(): Name;
+        getNamespace(): Name;
+
+        getLibraryGuid(): GUID;
+        getCrosscutsInfo(): CrosscutsInfo;
+        getValidChildrenTypesDetailed(aspect: Aspect, noFilter: boolean): Dictionary<any>;
+        getValidSetMemberTypesDetailed(setName: Name): { [key: string]: any };
+        getMetaTypeId(): Node | null;
+        getBaseTypeId(): Node | null;
+        isMetaNode(): boolean;
+        isTypeOf(typePath: Path): boolean;
+        isValidChildOf(parentPath: Path): boolean;
+        getValidChildrenIds(): NodeId[];
+        isValidTargetOf(sourcePath: Path, name: Name): boolean;
+        getValidAspectNames(): Name[];
+        getOwnValidAspectNames(): Name[];
+        getAspectMeta(): Metadata;
+
+        /** MixIns */
+        getMixinPaths(): Path[];
+        canSetAsMixin(mixinPath: Path): boolean;
+        isReadOnly(): boolean;
+
+    }
+    export class Pointer {
         constructor();
     }
 
@@ -574,13 +844,12 @@ declare namespace Core {
     }
     export interface GmePersisted { rootHash: Common.MetadataHash }
     export enum TraversalOrder { 'BFS', 'DFS' }
-    export type GUID = string;
 
     export interface NodeParameters {
         parent: Common.Node | null;
         base: Common.Node | null;
         relid?: string;
-        guid?: GUID;
+        guid?: Common.GUID;
     }
     export interface LibraryInfo {
         projectId: string;
@@ -682,10 +951,10 @@ declare namespace Core {
         getConstraintNames(node: Common.Node): string[];
         getFCO(node: Common.Node): Common.Node;
         getFullyQualifiedName(node: Common.Node): string;
-        getGuid(node: Common.Node): GUID;
+        getGuid(node: Common.Node): Common.GUID;
         getHash(node: Common.Node): Common.MetadataHash;
         getJsonMeta(node: Common.Node): {};
-        getLibraryGuid(node: Common.Node, name: Common.Name): GUID | Error;
+        getLibraryGuid(node: Common.Node, name: Common.Name): Common.GUID | Error;
         getLibraryInfo(node: Common.Node, name: Common.Name): LibraryInfo;
         getLibraryMetaNodes(node: Common.Node, name: Common.Name, onlyOwn?: boolean): Common.Node[];
         getLibraryNames(node: Common.Node): string[];
@@ -802,8 +1071,8 @@ declare namespace Core {
         setChildrenMetaLimits(node: Common.Node, min?: number, max?: number): undefined | Error;
         setConstraint(node: Common.Node, name: Common.Name, constraint: Constraint): undefined | Error;
         setGuid: {
-            (node: Common.Node, guid: GUID, callback: Common.ObjectCallback): undefined | Error;
-            (node: Common.Node, guid: GUID): Promise<Common.DataObject>;
+            (node: Common.Node, guid: Common.GUID, callback: Common.ObjectCallback): undefined | Error;
+            (node: Common.Node, guid: Common.GUID): Promise<Common.DataObject>;
         };
         setMemberAttribute: {
             (node: Common.Node, setName: string, memberPath: string,
@@ -847,10 +1116,6 @@ declare namespace Core {
         }
     }
 
-    export interface Dictionary {
-        // allow any number of 'other' properties.
-        [propName: string]: any;
-    }
 
 
     /**
@@ -1039,7 +1304,6 @@ declare namespace Core {
  */
 declare namespace Config {
 
-    type StringDictionary = { [key: string]: string };
 
     export interface ConfigItem {
         // a unique name for the configuration item
@@ -1103,7 +1367,7 @@ declare namespace Config {
             allowServerExecution: boolean
         };
         /** Additional paths to for requirejs. */
-        requirejsPaths: StringDictionary;
+        requirejsPaths: Common.Dictionary<string>;
         /** REST related settings. */
         rest: any;
         /** Seed related settings. */
