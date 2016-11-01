@@ -73,7 +73,7 @@ declare module "js/Utils/GMEConcepts" {
     export = gmeConcepts;
 }
 
-declare module "js/Utils/PreferenceHelper" {
+declare module "js/Utils/PreferencesHelper" {
     const helper: GME.PreferenceHelper;
     export = helper;
 }
