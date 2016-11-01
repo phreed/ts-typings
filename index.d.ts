@@ -58,12 +58,43 @@ declare module "js/PanelManager/IActivePanel" {
     export = activePanel;
 }
 
-declare module "" {
+declare module "js/NodePropertyNames" {
+    var names: GME.NodePropertyNames;
+    export = names;
+}
+
+declare module "js/RegistryKeys" {
+    const keys: GME.RegistryKeys;
+    export = keys;
+}
+
+declare module "js/Utils/GMEConcepts" {
     var gmeConcepts: GME.GMEConcepts;
     export = gmeConcepts;
 }
 
+declare module "js/Utils/PreferenceHelper" {
+    const helper: GME.PreferenceHelper;
+    export = helper;
+}
+
+declare interface Dictionary<T> {
+    [key: string]: T;
+}
+
 declare namespace GME {
+
+    interface NodePropertyNames {
+        Attributes: {
+            name: string;
+        };
+    }
+    interface RegistryKeys {
+        POSITION: string;
+    }
+    interface PreferenceHelper {
+
+    }
     interface GMEConcepts {
         isConnection(node: Common.Node): boolean;
     }
@@ -87,12 +118,33 @@ declare namespace GME {
         (err: Error, commit: any): void;
     }
 
+    interface Pos2D {
+        x: number;
+        y: number;
+    }
+    class ObjectDescriptor {
+        id: string;
+        name: string;
+        childrenIds: string[];
+        parentId: string;
+        isConnection: boolean;
+        childrenNum: number;
+        position: number;
+        source: Common.Pointer;
+        target: Common.Pointer;
+        pointers: Dictionary<Common.Pointer>;
+        srcPos: Pos2D;
+        dstPos: Pos2D;
+        srcObjId: string;
+        dstObjId: string;
+    }
     /**
      * May be: 'load' 'update' 'unload'
      */
     interface Event {
         etype: string;
         eid: string;
+        desc?: ObjectDescriptor;
     }
     /**
      * The eventHandler is invoked whenever there are 
@@ -536,6 +588,9 @@ declare namespace Common {
     }
     export class Pointer {
         constructor();
+
+        to: Common.NodeId;
+        from: Common.NodeId;
     }
 
     export type Path = string;
