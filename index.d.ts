@@ -352,7 +352,7 @@ declare namespace Toolbar {
         show(): void;
         hide(): void;
 
-
+        enabled(value: boolean): void;
     }
     class ToolbarSeparator {
         constructor();
