@@ -88,6 +88,7 @@ declare namespace GME {
         startArrow: string;
         endArrow: string;
     }
+
     interface NodePropertyNames {
         Attributes: {
             name: string;
