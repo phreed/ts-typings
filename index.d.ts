@@ -338,10 +338,7 @@ declare namespace Toolbar {
     interface Params {
 
     }
-    interface ToolbarItems {
-        btnModelHierarchyUp: ToolbarButton;
-        [key: string]: ToolbarButton | ToolbarItem;
-    }
+
     interface ToolbarItem {
         show(): void;
         hide(): void;
@@ -350,10 +347,12 @@ declare namespace Toolbar {
     interface ToolbarParams {
 
     }
-    class ToolbarButton {
+    class ToolbarButton extends Toolbar {
         constructor();
         show(): void;
         hide(): void;
+
+
     }
     class ToolbarSeparator {
         constructor();
@@ -373,8 +372,9 @@ declare namespace Toolbar {
     class ToolbarCheckBox {
         constructor();
     }
-    class ToolbarDropDownButton {
+    class ToolbarDropDownButton extends ToolbarButton {
         constructor();
+
     }
     class ToolbarColorPicker {
         constructor();
@@ -385,7 +385,7 @@ declare namespace Toolbar {
     class Toolbar {
         constructor(element: Element);
         add(item: ToolbarItem): ToolbarButton;
-        addButton(params: Params): void;
+        addButton(params: Params): ToolbarButton;
         addSeparator(): ToolbarSeparator;
         addRadioButtonGroup(clickFn: ClickFn): ToolbarRadioButtonGroup;
         addToggleButton(params: Params): ToolbarToggleButton;
