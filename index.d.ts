@@ -130,8 +130,8 @@ declare namespace GME {
         isConnection: boolean;
         childrenNum: number;
         position: number;
-        source: Common.Pointer;
-        target: Common.Pointer;
+        source: string;
+        target: string;
         pointers: Dictionary<Common.Pointer>;
         srcPos: Pos2D;
         dstPos: Pos2D;
@@ -142,6 +142,7 @@ declare namespace GME {
      * May be: 'load' 'update' 'unload'
      */
     interface Event {
+        id: string;
         etype: string;
         eid: string;
         desc?: ObjectDescriptor;
@@ -299,6 +300,9 @@ declare namespace Global {
     interface StateOptions {
         silent: boolean;
     }
+    interface StateHandler {
+        (model: any, change: string): void;
+    }
     class State {
         set(update: State): void;
 
@@ -315,6 +319,9 @@ declare namespace Global {
 
         clear(options?: StateOptions): void;
         toJSON(): any;
+
+        on(message: string, handler: StateHandler, target: any): void;
+        off(message: string, handler: StateHandler): void;
     }
     class KeyboardManager {
         setEnabled(action: boolean): void;
@@ -328,6 +335,9 @@ declare namespace Toolbar {
     }
     interface ToolbarItem {
         btnModelHierarchyUp: ToolbarButton;
+        show(): void;
+        hide(): void;
+        destroy(): void;
     }
     interface ToolbarParams {
 
