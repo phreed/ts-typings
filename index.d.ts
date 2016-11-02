@@ -84,6 +84,10 @@ declare interface Dictionary<T> {
 
 declare namespace GME {
 
+    interface ConnectionStyle {
+        startArrow: string;
+        endArrow: string;
+    }
     interface NodePropertyNames {
         Attributes: {
             name: string;
@@ -93,7 +97,7 @@ declare namespace GME {
         POSITION: string;
     }
     interface PreferenceHelper {
-
+        getPreferences(): PreferenceHelper;
     }
     interface GMEConcepts {
         isConnection(node: Common.Node): boolean;
@@ -142,7 +146,7 @@ declare namespace GME {
      * May be: 'load' 'update' 'unload'
      */
     interface Event {
-        id: string;
+        id?: string;
         etype: string;
         eid: string;
         desc?: ObjectDescriptor;
@@ -333,8 +337,11 @@ declare namespace Toolbar {
     interface Params {
 
     }
-    interface ToolbarItem {
+    interface ToolbarItems {
         btnModelHierarchyUp: ToolbarButton;
+        [key: string]: ToolbarButton | ToolbarItem;
+    }
+    interface ToolbarItem {
         show(): void;
         hide(): void;
         destroy(): void;
