@@ -335,48 +335,43 @@ declare namespace Global {
 }
 
 declare namespace Toolbar {
-    interface Params {
-
-    }
-
-    interface ToolbarItem {
-        show(): void;
-        hide(): void;
-        destroy(): void;
-    }
     interface ToolbarParams {
 
     }
-    class ToolbarButton extends Toolbar {
-        constructor();
+
+    class ToolbarItem {
         show(): void;
         hide(): void;
+        destroy(): void;
 
         enabled(value: boolean): void;
     }
-    class ToolbarSeparator {
-        constructor();
-    }
-    class ToolbarRadioButtonGroup {
-        constructor();
-    }
-    class ToolbarToggleButton {
-        constructor();
-    }
-    class ToolbarTextBox {
-        constructor();
-    }
-    class ToolbarLabel {
-        constructor();
-    }
-    class ToolbarCheckBox {
-        constructor();
-    }
-    class ToolbarDropDownButton extends ToolbarButton {
-        constructor();
 
+    class ToolbarButton extends ToolbarItem {
+        constructor();
     }
-    class ToolbarColorPicker {
+    class ToolbarSeparator extends ToolbarItem {
+        constructor();
+    }
+    class ToolbarRadioButtonGroup extends ToolbarButton {
+        constructor();
+    }
+    class ToolbarToggleButton extends ToolbarButton {
+        constructor();
+    }
+    class ToolbarTextBox extends ToolbarItem {
+        constructor();
+    }
+    class ToolbarLabel extends ToolbarItem {
+        constructor();
+    }
+    class ToolbarCheckBox extends ToolbarItem {
+        constructor();
+    }
+    class ToolbarDropDownButton extends ToolbarItem {
+        constructor();
+    }
+    class ToolbarColorPicker extends ToolbarItem {
         constructor();
     }
     interface ClickFn {
@@ -385,15 +380,15 @@ declare namespace Toolbar {
     class Toolbar {
         constructor(element: Element);
         add(item: ToolbarItem): ToolbarButton;
-        addButton(params: Params): ToolbarButton;
+        addButton(params: ToolbarParams): ToolbarButton;
         addSeparator(): ToolbarSeparator;
         addRadioButtonGroup(clickFn: ClickFn): ToolbarRadioButtonGroup;
-        addToggleButton(params: Params): ToolbarToggleButton;
-        addTextBox(params: Params): ToolbarTextBox;
+        addToggleButton(params: ToolbarParams): ToolbarToggleButton;
+        addTextBox(params: ToolbarParams): ToolbarTextBox;
         addLabel(): ToolbarLabel;
         addCheckBox(): ToolbarCheckBox;
-        addDropDownButton(params: Params): ToolbarDropDownButton;
-        addColorPicker(params: Params): ToolbarColorPicker;
+        addDropDownButton(params: ToolbarParams): ToolbarDropDownButton;
+        addColorPicker(params: ToolbarParams): ToolbarColorPicker;
 
         refresh(): void;
     }
