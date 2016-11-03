@@ -618,7 +618,7 @@ declare namespace Common {
 
     export type Path = string;
 
-    export type DataObject = {}
+    export type DataObject = Node;
     export type Buffer = GLbyte[];
     export type Payload = string | Buffer | Buffer[];
     export type Content = DataObject | Buffer | Buffer[];
