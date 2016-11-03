@@ -69,8 +69,7 @@ declare module "js/RegistryKeys" {
 }
 
 declare module "js/Utils/GMEConcepts" {
-    var gmeConcepts: GME.GMEConcepts;
-    export = gmeConcepts;
+    export = GME.Concepts;
 }
 
 declare module "js/Utils/PreferencesHelper" {
@@ -95,7 +94,7 @@ declare namespace GME {
     interface PreferenceHelper {
         getPreferences(): PreferenceHelper;
     }
-    namespace Concepts {
+    export namespace Concepts {
         function isConnection(node: Common.Node): boolean;
 
         interface ConnectionStyle {
