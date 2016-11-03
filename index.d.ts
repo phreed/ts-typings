@@ -101,9 +101,15 @@ declare namespace GME {
             startArrow: string;
             endArrow: string;
         }
-        interface ConnectionPair {
-            sources: string[];
-            destinations: string[];
+
+        interface ComposeChain {
+            objId: string;
+            subCompId: undefined | string;
+        }
+
+        interface ConnectionCollectionPair {
+            sources: ComposeChain[];
+            destinations: ComposeChain[];
         }
     }
     interface ConnectionCallback {
