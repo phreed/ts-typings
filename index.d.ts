@@ -84,11 +84,6 @@ declare interface Dictionary<T> {
 
 declare namespace GME {
 
-    interface ConnectionStyle {
-        startArrow: string;
-        endArrow: string;
-    }
-
     interface NodePropertyNames {
         Attributes: {
             name: string;
@@ -100,8 +95,17 @@ declare namespace GME {
     interface PreferenceHelper {
         getPreferences(): PreferenceHelper;
     }
-    interface GMEConcepts {
-        isConnection(node: Common.Node): boolean;
+    namespace Concepts {
+        function isConnection(node: Common.Node): boolean;
+
+        interface ConnectionStyle {
+            startArrow: string;
+            endArrow: string;
+        }
+        interface ConnectionPair {
+            sources: string[];
+            destinations: string[];
+        }
     }
     interface ConnectionCallback {
         (err: Error, connection: any): void;
@@ -370,6 +374,7 @@ declare namespace Toolbar {
     }
     class ToolbarDropDownButton extends ToolbarItem {
         constructor();
+        addButton(params: ToolbarParams): ToolbarButton;
     }
     class ToolbarColorPicker extends ToolbarItem {
         constructor();
