@@ -519,7 +519,9 @@ declare namespace Common {
      * https://github.com/webgme/webgme/blob/master/src/client/js/client/gmeNodeGetter.js
      */
     export class Node {
+        _id: string;
         constructor(id: string, logger: Core.GmeLogger, state: any, storeNode: StorageCallback);
+        constructor();
         getNode(id: NodeId, logger: Core.GmeLogger, state: any, storeNode: StorageCallback): Node;
 
         getParentId(): NodeId;
