@@ -54,8 +54,7 @@ declare module "js/PanelBase/PanelBaseWithHeader" {
 }
 
 declare module "js/PanelManager/IActivePanel" {
-    var activePanel: Panel.IActivePanel;
-    export = activePanel;
+    export = Panel.IActivePanel;
 }
 
 declare module "js/NodePropertyNames" {
@@ -136,7 +135,7 @@ declare namespace GME {
         x: number;
         y: number;
     }
-    class ObjectDescriptor {
+    interface ObjectDescriptor {
         id: string;
         name: string;
         childrenIds: string[];
@@ -155,9 +154,11 @@ declare namespace GME {
     /**
      * May be: 'load' 'update' 'unload'
      */
+    export type TerritoryEventType = "load" | "unload" | "update";
+
     interface Event {
         id?: string;
-        etype: string;
+        etype: TerritoryEventType;
         eid: string;
         desc?: ObjectDescriptor;
     }
@@ -411,8 +412,7 @@ declare namespace Visualize {
 
 declare namespace Panel {
 
-    interface IActivePanel {
-        control: any;
+    class IActivePanel {
         setActive(isActive: boolean): void;
         onActivate(): void;
         onDeactivate(): void;
@@ -456,6 +456,7 @@ declare namespace Panel {
     class PanelManager {
         constructor(client: GME.Client);
         getActivePanel(): PanelBase;
+        setActivePanel(panel: PanelBase): void;
     }
     class PanelBase {
         OPTIONS: Options;
@@ -482,6 +483,9 @@ declare namespace Panel {
         constructor(options: OptionsWithHeader, layoutManger: LayoutManager);
         initUI(options: OptionsWithHeader): void;
         setTitle(text: string): void;
+
+        setActive(isActive: boolean): void;
+        getNodeID(): string;
     }
 }
 
