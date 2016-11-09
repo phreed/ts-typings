@@ -171,7 +171,7 @@ declare namespace GME {
      *  3) We made changes to any of the nodes (via the setters).
      */
     interface TerritoryEventHandler {
-        (err: Error, event: Event[]): void;
+        (event: Event[]): void;
     }
     interface ChildCreationParams {
         parentId: string;
@@ -215,6 +215,12 @@ declare namespace GME {
         max: number;
         items: { id: string }[];
     }
+
+    /**
+     * https://github.com/webgme/webgme/wiki/GME-Client-API
+     * 
+     * https://github.com/webgme/webgme/blob/master/src/client/js/client.js
+     */
     class Client {
         constructor();
         /**
@@ -237,8 +243,17 @@ declare namespace GME {
          * load (updateTerritory).
          * Returns the user-id.
          */
-        addUI(pattern: any, eventHandler: TerritoryEventHandler): string;
+        addUI(pattern: any, eventHandler: TerritoryEventHandler, guid?: Common.GUID): string;
+        /**
+         * Initiate the initial load of nodes matching the patterns.
+         */
         updateTerritory(userId: string, patterns: any): void;
+        /**
+         * When we are no longer interested in the the 
+         * nodes for the userId so we remove the user. 
+         * This will prevent further invocations of
+         * our eventHandler and it will be cleaned up.
+         */
         removeUI(userId: string): void;
 
         /**
