@@ -135,6 +135,9 @@ declare namespace GME {
         x: number;
         y: number;
     }
+    interface VisualizerControl {
+
+    }
     interface ObjectDescriptor {
         id: string;
         name: string;
@@ -150,6 +153,14 @@ declare namespace GME {
         dstPos: Pos2D;
         srcObjId: string;
         dstObjId: string;
+
+        control?: VisualizerControl;
+        metaInfo?: Dictionary<string>;
+        preferencesHelper?: GME.PreferenceHelper;
+        srcSubCompId?: string;
+        dstSubCompId?: string;
+        reconnectable?: boolean;
+        editable?: boolean;
     }
     /**
      * May be: 'load' 'update' 'unload'
@@ -166,9 +177,21 @@ declare namespace GME {
      * The eventHandler is invoked whenever there are 
      * changes to the nodes matching any of the patterns.
      *  There are three cases when it is triggered:
-     *  1) updateTerritory was invoked by us.
-     *  2) Another client made changes to nodes within the territory.
-     *  3) We made changes to any of the nodes (via the setters).
+     *   - updateTerritory was invoked by us.
+     *   - Another client made changes to nodes within the territory.
+     *   - We made changes to any of the nodes (via the setters).
+     * 
+     *  * ('load')
+     * The node is loaded and we have access to it.
+     * It was either just created or this is the initial updateTerritory we invoked.
+     *  * ('update') 
+     * There were changes to the node (some might not apply to your application).
+     * The node is still loaded and we have access to it.
+     *  * ('unload')
+     * The node was removed from the model (we can no longer access it).
+     * We still get the path/id via events[i].eid
+     *  * (else)
+     * "Technical events" not used.
      */
     interface TerritoryEventHandler {
         (event: Event[]): void;
@@ -216,6 +239,20 @@ declare namespace GME {
         items: { id: string }[];
     }
 
+    type TerritoryId = Common.GUID;
+    /**
+     * A pattern is a filter for nodes to load/watch.
+     * 
+     * The root-node (with path '') always exists in a 
+     * project so it is the safest starting point. 
+     * We specify the number of levels in the containment
+     * hierarchy to load.
+     * It can be set to any positive integer [0, Inf).
+     */
+    interface TerritoryPattern {
+        children: number;
+    }
+
     /**
      * https://github.com/webgme/webgme/wiki/GME-Client-API
      * 
@@ -238,16 +275,20 @@ declare namespace GME {
         selectProject(projectId: string, branchName: string, callback: OpenProjectCallback): void;
         /**
          * Add a user associated with the pattern and an event-handler.
-         * The eventHandler will be invoked when the nodes within the territory,
-         * i.e. nodes matching any of the patterns, changes or on the initial
-         * load (updateTerritory).
+         * The eventHandler is invoked whenever there are changes 
+         * to the nodes matching any of the patterns.
+         * There are three cases when it is triggered:
+         * - **updateTerritory** was invoked by us.
+         * - Another client made changes to nodes within the territory.
+         * - We made changes to any of the nodes (via the setters).
+         * 
          * Returns the user-id.
          */
-        addUI(pattern: any, eventHandler: TerritoryEventHandler, guid?: Common.GUID): string;
+        addUI(pattern: any, eventHandler: TerritoryEventHandler, guid?: TerritoryId): string;
         /**
          * Initiate the initial load of nodes matching the patterns.
          */
-        updateTerritory(userId: string, patterns: any): void;
+        updateTerritory(userId: string, patterns: Dictionary<TerritoryPattern>): void;
         /**
          * When we are no longer interested in the the 
          * nodes for the userId so we remove the user. 
