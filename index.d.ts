@@ -1,30 +1,27 @@
-// Type definitions for <SAMPLE> v0.8.1 
-// Project: https://github.com/<SAMPLE>.js
+// Type definitions for chai-deep-match v1.0.2 
+// Project: https://github.com/JamesMGreene/chai-deep-match
 // Definitions by: Fred Eisele <https://github.com/phreed>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-/// <reference types="node" />
+/// <reference types="chai" />
 
-/**
-### 0.0.1 Changelog (https://github.com/<SAMPLE>)
+declare namespace Chai {
 
-#### TODO:
-
-Match samples from README.md
-
-- [x] do it.
-
-*/
-
-declare module "sample" {
-    import * as fs from "fs";
-
-    namespace Sample {
-
-        type Dictionary = { [key: string]: any };
-
+    interface DeepMatch extends Assertion {
+        (value: any, message?: string): Assertion;
     }
 
-    export = Sample;
+    interface Deep {
+        /**
+         * Extends Chai with an assertion for deeply matching objects.
+         * Perform subset equality checking.
+         */
+        match: DeepMatch;
+    }
+}
+
+declare module "chai-deep-match" {
+    function chaiDeepMatch(chai: any, utils: any): void;
+    export = chaiDeepMatch;
 }
 
