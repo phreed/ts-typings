@@ -1,6 +1,6 @@
 {
   "name": "@types/SAMPLE",
-  "version": "0.8.1",
+  "version": "0.0.1",
   "description": "A set of TypeScript definitions for SAMPLE",
   "main": "",
   "typings": "index.d.ts",
@@ -15,9 +15,11 @@
   "directories": {
     "test": "test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "typescript": "^2.1.1"
+  },
   "devDependencies": {
-    "typings": "~1.4.0"
+    "ts-node": "^1.7.0"
   },
   "repository": {
     "type": "git",

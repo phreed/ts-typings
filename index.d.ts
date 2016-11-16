@@ -3,7 +3,7 @@
 // Definitions by: Fred Eisele <https://github.com/phreed>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-/// <reference path="../node/index.d.ts" />
+/// <reference types="node" />
 
 /**
 ### 0.0.1 Changelog (https://github.com/<SAMPLE>)
@@ -21,7 +21,7 @@ declare module "sample" {
 
     namespace Sample {
 
-	type Dictionary = {[key: string]: any};
+        type Dictionary = { [key: string]: any };
 
     }
 
