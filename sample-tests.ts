@@ -1,27 +1,17 @@
 /// <reference path="./index.d.ts" />
-/// <reference path="../node/index.d.ts" />
+/// <reference types="node" />
+/// <reference types="chai" />
 
 
 /**
-  [?] has correct naming convention
-
-  checked compilation succeeds  
-   [+] tsc --noImplicitAny --target es5 ./index.d.ts
-   [x] tsc --noImplicitAny --target es6 ./index.d.ts
-
-  [x] has a test file with the suffix of -tests.ts
-
-  checked the test file
-   [x] tsc --noImplicitAny --target es5 --module commonjs ./sample-tests.ts 
-   [x] tsc --noImplicitAny --target es6 --module commonjs ./sample-tests.ts 
 
 */
 
-import * as Sample from "sample";
-import * as fs from "fs";
-import * as stream from "stream";
+import { expect, config } from "chai";
+import { chaiDeepMatch } from "chai-deep-match";
+chai.use(chaiDeepMatch);
 
 function test_it() {
-
+    expect([{ "1": [2, 3, { "5": 6 }] }]).to.deep.match([]);
 }
 

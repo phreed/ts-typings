@@ -1,7 +1,7 @@
 {
-  "name": "@types/SAMPLE",
+  "name": "@types/chai-deep-match",
   "version": "0.0.1",
-  "description": "A set of TypeScript definitions for SAMPLE",
+  "description": "A set of TypeScript definitions for chai-deep-match",
   "main": "",
   "typings": "index.d.ts",
   "files": [
@@ -9,7 +9,8 @@
   ],
   "keywords": [
     "typescript",
-    "SAMPLE",
+    "chai",
+    "chai-deep-match",
     "defininition"
   ],
   "directories": {
