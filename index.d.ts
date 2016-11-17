@@ -163,9 +163,9 @@ declare namespace GME {
         editable?: boolean;
     }
     /**
-     * May be: 'load' 'update' 'unload'
+     * primary values are: 'load' 'update' 'unload'
      */
-    export type TerritoryEventType = "load" | "unload" | "update" | "complete";
+    export type TerritoryEventType = "load" | "unload" | "update" | "complete" | "incomplete";
 
     interface Event {
         id?: string;
