@@ -1,4 +1,4 @@
-// Type definitions for <SAMPLE> v0.8.1 
+// Type definitions for <SAMPLE> v0.0.1 
 // Project: https://github.com/<SAMPLE>.js
 // Definitions by: Fred Eisele <https://github.com/phreed>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
