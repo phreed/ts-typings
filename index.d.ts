@@ -165,7 +165,7 @@ declare namespace GME {
     /**
      * May be: 'load' 'update' 'unload'
      */
-    export type TerritoryEventType = "load" | "unload" | "update";
+    export type TerritoryEventType = "load" | "unload" | "update" | "complete";
 
     interface Event {
         id?: string;
