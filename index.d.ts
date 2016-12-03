@@ -16,13 +16,13 @@ declare module "blob/BlobMetadata" {
         name: string;
         size: number;
         mime: string;
-        context: Common.DataObject;
+        context: Core.DataObject;
         contentType: string;
     }
 }
 
 declare module "plugin/PluginBase" {
-    export = Core.PluginBase;
+    export = Plugin.PluginBase;
 }
 
 declare module "plugin/PluginConfig" {
@@ -80,6 +80,16 @@ declare interface Dictionary<T> {
     [key: string]: T;
 }
 
+declare interface VoidCallback {
+    (): void;
+}
+declare interface ErrorOnlyCallback {
+    (err: Error | null): void;
+}
+declare interface ResultCallback<T> {
+    (err: Error | null, result: T): void;
+}
+
 declare namespace GME {
 
     interface NodePropertyNames {
@@ -94,7 +104,7 @@ declare namespace GME {
         getPreferences(): PreferenceHelper;
     }
     export namespace Concepts {
-        function isConnection(node: Common.Node): boolean;
+        function isConnection(node: Core.Node): boolean;
 
         interface ConnectionStyle {
             startArrow: string;
@@ -111,9 +121,8 @@ declare namespace GME {
             destinations: ComposeChain[];
         }
     }
-    interface ConnectionCallback {
-        (err: Error, connection: any): void;
-    }
+    type Connection = any;
+
     interface Project {
         name: string;
         /** should always be true */
@@ -124,12 +133,7 @@ declare namespace GME {
             [key: string]: string;
         }
     }
-    interface ProjectCallback {
-        (err: Error, projects: Project[] | { [key: string]: Project }): void;
-    }
-    interface OpenProjectCallback {
-        (err: Error, commit: any): void;
-    }
+    type ProjectResult = Project[] | { [key: string]: Project };
 
     interface Pos2D {
         x: number;
@@ -171,7 +175,6 @@ declare namespace GME {
         id?: string;
         etype: TerritoryEventType;
         eid: string;
-        desc?: ObjectDescriptor;
     }
     /**
      * The eventHandler is invoked whenever there are 
@@ -207,9 +210,7 @@ declare namespace GME {
          */
         status: string;
     }
-    interface TransactionCallback {
-        (err: Error, result: TransactionResult): void;
-    }
+
     interface AttributeSchema {
         /** integer, float, asset, string */
         type: string;
@@ -239,7 +240,7 @@ declare namespace GME {
         items: { id: string }[];
     }
 
-    type TerritoryId = Common.GUID;
+    type TerritoryId = Core.GUID;
     /**
      * A pattern is a filter for nodes to load/watch.
      * 
@@ -263,16 +264,16 @@ declare namespace GME {
         /**
          * Connecting to the webGME database.
          */
-        connectToDatabase(callback: ConnectionCallback): void;
+        connectToDatabase(callback: ResultCallback<Connection>): void;
         /**
          * asIndexed true to get an object indexed by project ids.
          */
-        getProjectsAndBranches(asIndexed: boolean, callback: ProjectCallback): void;
+        getProjectsAndBranches(asIndexed: boolean, callback: ResultCallback<ProjectResult>): void;
         /**
          * The client opens a project and a branch and 
          * from there we can start registering for node events.
          */
-        selectProject(projectId: string, branchName: string, callback: OpenProjectCallback): void;
+        selectProject(projectId: string, branchName: string, callback: ResultCallback<any>): void;
         /**
          * Add a user associated with the pattern and an event-handler.
          * The eventHandler is invoked whenever there are changes 
@@ -300,13 +301,13 @@ declare namespace GME {
         /**
          * Typically called from within the event-handler.
          */
-        getNode(nodeId: Common.NodeId): Common.Node;
+        getNode(nodeId: Common.NodeId): Core.Node;
         /**
          * Get an array of all the META nodes as nodeObjs.
          * Since these may change it is a good idea to invoke 
          * this each time the territory of the root changes.
          */
-        getAllMetaNodes(): Common.Node[];
+        getAllMetaNodes(): Core.Node[];
 
         setAttributes(nodeId: Common.NodeId, name: string, newName: string, message: string): void;
         createChild(params: ChildCreationParams, message: string): void;
@@ -317,7 +318,7 @@ declare namespace GME {
          */
         startTransaction(message: string): void;
         setRegistry(nodeId: Common.NodeId, attr: string, property: any, message: string): void;
-        completeTransaction(message: string, callback: TransactionCallback): void;
+        completeTransaction(message: string, callback: ResultCallback<TransactionResult>): void;
 
         /**
          * make a new pointer object.
@@ -330,11 +331,11 @@ declare namespace GME {
         */
         addMember(sourceNodeId: Common.NodeId, targetNodeId: Common.NodeId, setName: string, message: string): Common.Pointer;
 
-        getAllMetaNodes(): Common.Node[];
+        getAllMetaNodes(): Core.Node[];
         setAttributeSchema(nodeId: string, name: string, schema: AttributeSchema): void;
         updateValidChildrenItem(nodeId: Common.NodeId, type: ChildType): void
 
-        setPointerMeta(metaNodeId: Common.NodeId, newPointerName: string, meta: PointerMeta): void;
+        setPointerMeta(metaNodeId: Common.NodeId, newPointerName: string, meta: GME.PointerMeta): void;
 
     }
 
@@ -397,6 +398,24 @@ declare namespace Global {
     class KeyboardManager {
         setEnabled(action: boolean): void;
         setListener(listener?: any): void;
+    }
+    /**
+    Logs debug messages
+    https://editor.webgme.org/docs/source/global.html#GmeLogger
+    */
+    export interface GmeLogger {
+        debug(fmt: string, msg?: string | undefined): void;
+        info(fmt: string, msg?: string | undefined): void;
+        warn(fmt: string, msg?: string | undefined): void;
+        error(fmt: string, msg?: string | undefined): void;
+        /**
+        Creates a new logger with the same settings
+        and a name that is an augmentation of this logger and the
+        provided string.
+        If the second argument is true
+        - the provided name will be used as is.
+        */
+        fork(fmt: string, reuse?: boolean): GmeLogger;
     }
 }
 
@@ -501,7 +520,7 @@ declare namespace Panel {
         _panels: PanelBase[];
         _currentLayoutName: string;
         _currentLayout: Layout;
-        _logger: Core.GmeLogger;
+        _logger: Global.GmeLogger;
         constructor();
         loadLayout(layout: Layout, callback: LayoutCallback): void;
         loadPanel(params: Params, callback: LayoutCallback): void;
@@ -516,7 +535,7 @@ declare namespace Panel {
     }
     class PanelBase {
         OPTIONS: Options;
-        logger: Core.GmeLogger;
+        logger: Global.GmeLogger;
         control: any;
 
         constructor(options: Options);
@@ -545,8 +564,6 @@ declare namespace Panel {
     }
 }
 
-
-
 declare namespace Common {
 
     export interface Dictionary<T> {
@@ -556,13 +573,11 @@ declare namespace Common {
     export type ISO8601 = string;
     export type ErrorStr = string;
     export type MetadataHash = string;
-    export type MetadataHashArray = string[];
     export type ArtifactHash = string;
     export type Name = string;
     export type NodeId = string;
     export type MemberId = Path;
     export type SetId = string;
-    export type GUID = string;
     export type Registry = any;
     export type CrosscutsInfo = Registry;
 
@@ -571,106 +586,6 @@ declare namespace Common {
     export type AttrMeta = any;
     export type Aspect = string;
 
-    export interface StorageCallback {
-        (err: Error): void;
-    }
-
-    /**
-     * https://github.com/webgme/webgme/blob/master/src/client/js/client/gmeNodeGetter.js
-     */
-    export class Node {
-        _id: string;
-        constructor(id: string, logger: Core.GmeLogger, state: any, storeNode: StorageCallback);
-        constructor();
-        getNode(id: NodeId, logger: Core.GmeLogger, state: any, storeNode: StorageCallback): Node;
-
-        getParentId(): NodeId;
-        getId(): NodeId;
-        getRelid(): NodeId;
-        getGuid(): GUID;
-        getChildrenIds(): NodeId[];
-        getBaseId(): NodeId;
-        isValidNewBase(basePath: Path): boolean;
-        isValidNewParent(parentPath: Path): boolean;
-        getInheritorIds(): NodeId[];
-        getAttribute(name: Name): OutAttr;
-        getOwnAttribute(name: Name): OutAttr;
-        getEditableAttribute(name: Name): OutAttr;
-        getOwnEditableAttribute(name: Name): OutAttr;
-        getRegistry(name: Name): Registry;
-        getOwnRegistry(name: Name): Registry;
-        getEditableRegistry(name: Name): Registry;
-        getOwnEditableRegistry(name: Name): Registry;
-
-        getPointer(name: Name): Pointer;
-        getPointerId(name: Name): SetId;
-        getOwnPointer(name: Name): Pointer;
-        getOwnPointerId(name: Name): SetId;
-        getPointerNames(): Name[];
-        getOwnPointerNames(): Name[];
-
-        getAttributeNames(): Name[];
-        getValidAttributeNames(): Name[];
-        getOwnAttributeNames(): Name[];
-        getOwnValidAttributeNames(): Name[];
-
-        getAttributeMeta(name: Name): AttrMeta;
-        getRegistryNames(): Name[];
-        getOwnRegistryNames(): Name[];
-
-        /** Set */
-        getMemberIds(setId: SetId): Path[];
-        getSetNames(): Name[];
-        getMemberAttributeNames(setId: SetId, memberId: MemberId): Name[];
-        getMemberAttribute(setId: SetId, memberId: MemberId): OutAttr;
-        getEditableMemberAttribute(setId: SetId, memberId: MemberId, name: Name): OutAttr;
-        getMemberRegistryNames(setId: SetId, memberId: MemberId): Name[];
-        getMemberRegistry(setId: SetId, memberId: MemberId, name: Name): Registry;
-        getEditableMemberRegistry(setId: SetId, memberId: MemberId, name: Name): Registry;
-
-        /** META */
-        getValidChildrenTypes(): NodeId[];
-        getValildAttributeNames(): Name[];
-        isValidAttributeValueOf(name: Name, value: any): boolean;
-        getValidPointerNames(): Name[];
-        getValidSetNames(): Name[];
-        getConstraintNames(): Name[];
-        getOwnConstraintNames(): Name[];
-        getConstraint(name: Name): Constraint;
-        toString(): string;
-
-        getCollectionPaths(name: Name): Path[];
-        getInstancePaths(): Path[];
-        getJsonMeta(): Metadata[];
-
-        isConnection(): boolean;
-        isAbstract(): boolean;
-        isLibraryRoot(): boolean;
-        isLibraryElement(): boolean;
-        getFullyQualifiedName(): Name;
-        getNamespace(): Name;
-
-        getLibraryGuid(): GUID;
-        getCrosscutsInfo(): CrosscutsInfo;
-        getValidChildrenTypesDetailed(aspect: Aspect, noFilter: boolean): Dictionary<any>;
-        getValidSetMemberTypesDetailed(setName: Name): { [key: string]: any };
-        getMetaTypeId(): Node | null;
-        getBaseTypeId(): Node | null;
-        isMetaNode(): boolean;
-        isTypeOf(typePath: Path): boolean;
-        isValidChildOf(parentPath: Path): boolean;
-        getValidChildrenIds(): NodeId[];
-        isValidTargetOf(sourcePath: Path, name: Name): boolean;
-        getValidAspectNames(): Name[];
-        getOwnValidAspectNames(): Name[];
-        getAspectMeta(): Metadata;
-
-        /** MixIns */
-        getMixinPaths(): Path[];
-        canSetAsMixin(mixinPath: Path): boolean;
-        isReadOnly(): boolean;
-
-    }
     export class Pointer {
         constructor();
 
@@ -680,7 +595,7 @@ declare namespace Common {
 
     export type Path = string;
 
-    export type DataObject = Node;
+    export type DataObject = Core.Node;
     export type Buffer = GLbyte[];
     export type Payload = string | Buffer | Buffer[];
     export type Content = DataObject | Buffer | Buffer[];
@@ -690,14 +605,109 @@ declare namespace Common {
     export type InAttr = DataObject | Primitive | null;
     export type OutPath = string | undefined | null;
 
-    export type VoidFn = () => void;
+    export type RelId = string;
 
-    export type MetadataHashCallback = (err: Error, result: MetadataHash) => void;
-    export type MetadataHashArrayCallback = (err: Error, result: MetadataHashArray) => void;
-    export type MetadataCallback = (err: Error, result: Metadata) => void;
-    export type ObjectCallback = (err: Error, result: DataObject) => void;
-    export type ObjectArrayCallback = (err: Error, result: DataObject[]) => void;
-    export type JSONCallback = (err: Error, result: JSON) => void;
+    export type VoidFn = () => void;
+    export interface DefStringObject {
+        type: "string";
+        regex?: string;
+        enum?: string[];
+    }
+    export interface DefIntegerObject {
+        type: "integer";
+        min?: number;
+        max?: number;
+        enum?: number[];
+    }
+    export interface DefFloatObject {
+        type: "float";
+        min?: number;
+        max?: number;
+        enum?: number[];
+    }
+    export interface DefBoolObject {
+        type: "boolean";
+    }
+    export interface DefAssetObject {
+        type: "asset";
+    }
+    export type DefObject = DefStringObject
+        | DefIntegerObject | DefFloatObject
+        | DefBoolObject | DefAssetObject;
+
+    export interface MetaCardRule {
+        items: Common.Path[];
+        minItems: number[];
+        maxItems: number[];
+    }
+    export interface MetaRules {
+        children: MetaCardRule;
+        attributes: {
+            name: DefStringObject;
+            level: DefIntegerObject;
+        };
+        pointers: {
+            ptr: MetaCardRule & {
+                min: 1;
+                max: 1;
+            };
+            set: MetaCardRule & {
+                min: number;
+                max: number;
+            };
+        };
+        aspects: {
+            filter: Common.Path[];
+        };
+        constraints: Dictionary<Core.Constraint>;
+    }
+}
+
+declare namespace Plugin {
+    class PluginBase implements Base {
+        constructor();
+
+        activeNode: Core.Node;
+        activeSelection: Core.Node[];
+        blobClient: Blobs.BlobClient;
+        core: Core;
+        gmeConfig: Config.GmeConfig;
+        isConfigured: boolean;
+        logger: Global.GmeLogger;
+        META: any;
+        namespace: string;
+        notificationHandlers: any[];
+        pluginMetadata: Common.Metadata;
+        project: ProjectInterface;
+        result: Result;
+        rootNode: Core.Node;
+
+        addCommitToResult(status: string): void;
+        baseIsMeta(node: any): boolean;
+        configure(config: Config.GmeConfig): void;
+        createMessage(node: any, message: string, serverity: string): void;
+        getConfigStructure(): any;
+        getCurrentConfig(): Config.GmeConfig;
+        getDefaultConfig(): Config.GmeConfig;
+        getDescription(): string;
+        getMetadata(): any;
+        getMetaType(node: any): any;
+        getName(): string;
+        getVersion(): string;
+        initialize(logger: Global.GmeLogger, blobClient: Blobs.BlobClient, gmeConfig: Config.GmeConfig): void;
+        isInvalidActiveNode(pluginId: any): any;
+        isMetaTypeOf(node: any, metaNode: any): boolean;
+        main(callback: ResultCallback<Result>): void;
+        save(message?: string): Promisable;
+        sendNotification: {
+            (message: string, callback: ResultCallback<Result>): void;
+            (message: string): Promise<Core.DataObject>;
+        }
+        setCurrentConfig(newConfig: Config.GmeConfig): void;
+        updateMeta(generatedMeta: any): void;
+        updateSuccess(value: boolean, message: TemplateStringsArray): void;
+    }
+
 }
 
 declare namespace Util {
@@ -720,19 +730,40 @@ declare namespace Blobs {
         name: string;
         size: number;
         mime: string;
-        context: Common.DataObject;
+        context: Core.DataObject;
         contentType: string;
     }
 
     export type BlobMetadataDescriptor = {}
 
+    export interface BlobClientParamters {
+        logger: Global.GmeLogger;
+    }
+    /**
+     * Client to interact with the blob-storage. 
+     * https://editor.dev.webgme.org/docs/source/BlobClient.html
+     */
     export class BlobClient {
-        constructor();
+        /**
+         * @param paramters
+         */
+        constructor(parameters: BlobClientParamters);
 
-        createArtifact(name: Common.Name): Core.Artifact;
+        /**
+         * Creates a new artifact 
+         * and adds it to array of artifacts of the instance.
+         * @param name name of artifact.
+         * @return the created artifact.
+         */
+        createArtifact(name: Common.Name): Artifact;
+        /**
+         * Retrieves the Artifact from the blob storage.
+         * @param metadataHash hash associated with the artifact.
+         * @return resolved with Artifact artifact.
+         */
         getArtifact: {
-            (metadataHash: Common.MetadataHash, callback: Core.ArtifactCallback): void;
-            (metadataHash: Common.MetadataHash): Promise<Core.Artifact>;
+            (metadataHash: Common.MetadataHash, callback: ResultCallback<Artifact>): void;
+            (metadataHash: Common.MetadataHash): Promise<Artifact>;
         }
         getMetadataURL(metadataHash: Common.MetadataHash): string;
         getRelativeMetadataURL(metadataHash: Common.MetadataHash): string;
@@ -742,41 +773,41 @@ declare namespace Blobs {
         getCreateURL(filename: Common.Name, isMetadata: boolean): string;
         getRelativeCreateURL(filename: Common.Name, isMetadata: boolean): string;
         getSubObject: {
-            (metadataHash: Common.MetadataHash, subpath: string, callback: Common.ObjectCallback): void;
-            (metadataHash: Common.MetadataHash, subpath: string): Promise<Common.DataObject>;
+            (metadataHash: Common.MetadataHash, subpath: string, callback: ResultCallback<Core.DataObject>): void;
+            (metadataHash: Common.MetadataHash, subpath: string): Promise<Core.DataObject>;
         }
         getObject: {
-            (metadataHash: Common.MetadataHash, callback: Common.ObjectCallback, subpath: string): Common.Content;
+            (metadataHash: Common.MetadataHash, callback: ResultCallback<Common.Content>, subpath: string): void;
             (metadataHash: Common.MetadataHash, subpath: string): Promise<Common.Content>;
         }
         getObjectAsString: {
-            (metadataHash: Common.MetadataHash, callback: Common.MetadataHashCallback): Common.ContentString;
+            (metadataHash: Common.MetadataHash, callback: ResultCallback<Common.MetadataHash>): Common.ContentString;
             (metadataHash: Common.MetadataHash): Promise<Common.ContentString>;
         }
         getObjectAsJSON: {
-            (metadataHash: Common.MetadataHash, callback: Common.JSONCallback): void;
+            (metadataHash: Common.MetadataHash, callback: ResultCallback<JSON>): void;
             (metadataHash: Common.MetadataHash): Promise<JSON>;
         }
         getMetadata: {
-            (metadataHash: Common.MetadataHash, callback: Common.MetadataCallback): Common.Metadata;
+            (metadataHash: Common.MetadataHash, callback: ResultCallback<Common.Metadata>): void;
             (metadataHash: Common.MetadataHash): Promise<Common.Metadata>;
         }
         getHumanSize(bytes: number, si: boolean): string;
         putFile: {
-            (name: Common.Name, data: Common.Payload, callback: Common.MetadataHashCallback): void;
+            (name: Common.Name, data: Common.Payload, callback: ResultCallback<Common.MetadataHash>): void;
             (name: Common.Name, data: Common.Payload): Promise<Common.MetadataHash>;
         }
         putMetadata: {
-            (metadataDescriptor: BlobMetadataDescriptor, callback: Common.MetadataHashCallback): void;
+            (metadataDescriptor: BlobMetadataDescriptor, callback: ResultCallback<Common.MetadataHash>): void;
             (metadataDescriptor: BlobMetadataDescriptor): Promise<Common.MetadataHash>;
         }
         putFiles: {
-            (o: { [name: string]: Common.Payload }, callback: Common.MetadataHashArrayCallback): void;
-            (o: { [name: string]: Common.Payload }): Promise<Common.MetadataHashArray>;
+            (o: { [name: string]: Common.Payload }, callback: ResultCallback<Common.MetadataHash[]>): void;
+            (o: { [name: string]: Common.Payload }): Promise<Common.MetadataHash[]>;
         }
         saveAllArtifacts: {
-            (callback: Common.MetadataHashArrayCallback): void;
-            (): Promise<Common.MetadataHashArray>;
+            (callback: ResultCallback<Common.MetadataHash[]>): void;
+            (): Promise<Common.MetadataHash[]>;
         }
     }
 
@@ -784,658 +815,1855 @@ declare namespace Blobs {
 
 
 /**
-Describe plugins
-*/
+ * This class defines the public API of the WebGME-Core
+ * https://editor.dev.webgme.org/docs/source/module-Core.html
+ */
 declare namespace Core {
 
-    export interface ResultCallback {
-        (err: Error | null, result: Result): void;
-    }
-
-    export interface Message {
-        msg: string;
-    }
-
-    export type ArtifactCallback = (err: Error, result: Artifact) => void;
-
-    export interface Artifact {
-        name: Common.Name;
-        blobClient: Blobs.BlobClient;
-        descriptor: Blobs.BlobMetadata;
-
-        constructor(name: Common.Name, blobClient: Blobs.BlobClient, descriptor: Blobs.BlobMetadata): void;
-
-        /** Adds content to the artifact as a file. */
-        addFile: {
-            (name: Common.Name, content: Blobs.ObjectBlob, callback: Common.MetadataHashCallback): void;
-            (name: Common.Name, content: Blobs.ObjectBlob): Promise<Common.MetadataHash>;
-        }
-        /** Adds files as soft-link. */
-        addFileAsSoftLink: {
-            (name: Common.Name, content: Blobs.ObjectBlob, callback: Common.MetadataHashCallback): void;
-            (name: Common.Name, content: Blobs.ObjectBlob): Promise<Common.MetadataHash>;
-        }
-        /** Adds multiple files. */
-        addFiles: {
-            (files: { [name: string]: Blobs.ObjectBlob }, callback: Common.MetadataHashArrayCallback): void;
-            (files: { [name: string]: Blobs.ObjectBlob }): Promise<Common.MetadataHashArray> | Promise<string>;
-        }
-        /** Adds multiple files as soft-links. */
-        addFilesAsSoftLinks: {
-            (files: { [name: string]: Blobs.ObjectBlob }, callback: Common.MetadataHashArrayCallback): void;
-            (files: { [name: string]: Blobs.ObjectBlob }): Promise<Common.MetadataHashArray>;
-        }
-        /** Adds a metadataHash to the artifact using the given file path. */
-        addMetadataHash: {
-            (name: Common.Name, metadataHash: Common.MetadataHash, size: number, callback: Common.MetadataHashCallback): void;
-            (name: Common.Name, metadataHash: Common.MetadataHash, size?: number): Promise<Common.MetadataHash>;
-
-            (objectHashes: { [name: string]: string }, callback: Common.MetadataHashCallback): void;
-            (objectHashes: { [name: string]: string }): Promise<Common.MetadataHash>;
-        }
-        /** Adds metadataHashes to the artifact using the given file paths. */
-        addMetadataHashes: {
-            (name: Common.Name, metadataHash: Common.MetadataHash, size: number, callback: Common.MetadataHashArrayCallback): void;
-            (name: Common.Name, metadataHash: Common.MetadataHash, size?: number): Promise<Common.MetadataHashArray>;
-
-            (objectHashes: { [name: string]: string }, callback: Common.MetadataHashArrayCallback): void;
-            (objectHashes: { [name: string]: string }): Promise<Common.MetadataHashArray>;
-        }
-        /** Adds a metadataHash to the artifact using the given file path. */
-        addObjectHash: {
-            (name: Common.Name, metadataHash: Common.MetadataHash, callback: Common.MetadataHashCallback): void;
-            (name: Common.Name, metadataHash: Common.MetadataHash): Promise<Common.MetadataHash>;
-        }
-        /** Adds metadataHashes to the artifact using the given file paths. */
-        addObjectHashes: {
-            (objectHashes: { [name: string]: string }, callback: Common.MetadataHashArrayCallback): void;
-            (objectHashes: { [name: string]: string }): Promise<Common.MetadataHashArray>;
-        }
-        /** Saves this artifact and uploads the metadata to the server's storage. */
-        save: {
-            (callback: Common.MetadataHashCallback): void;
-            (message?: string): Promise<Common.MetadataHash>;
-        }
+    /**
+     * An object that represents some additional rule regarding some node of the project.
+     */
+    export interface Constraint {
+        /** The script which checks if the constraint is met. */
+        script: string;
+        /** Short description of the constraint. */
+        info: string;
+        /** Gives instructions on how to deal with violations of the constraint. */
+        priority: number;
     }
     /**
-     commitHash - metadataHash of the commit.
-     status - storage.constants./SYNCED/FORKED/MERGED
-    */
-    export interface Commit {
-        commitHash: Common.MetadataHash;
-        status: string;
-        branchName: string;
+     * Inner data of module:Core~Node that can be serialized and saved in the storage.
+     */
+    export type DataObject = any;
+
+    /** the result object of a persist which contains information about the newly created data objects. */
+    export interface GmePersisted {
+        rootHash: Core.ObjectHash;
+        objects: { [key: string]: Core.DataObject };
     }
 
-    export interface Result {
-        success: boolean;
-        messages: string[]; // array of PluginMessages
-        artifacts: Common.ArtifactHash[]; // array of hashes
-        pluginName: string;
-        startTime: Date;
-        finishTime: Date;
-        error: Error;
-        projectId: any;
-        commits: any[];
+    /**
+     * Globally unique identifier. 
+     * A formatted string containing hexadecimal characters. 
+     * If some projects share some GUIDs that can only 
+     * be because the node with the given 
+     * identification represents the same concept.
+     */
+    export type GUID = string;
 
-        /**
-        * Gets the success flag of this result object
-        */
-        getSuccess(): boolean;
-        /**
-        * Sets the success flag of this result.
-        */
-        setSuccess(value: boolean): void;
-        /**
-        * Returns with the plugin messages.
-        */
-        getMessages(): Message[];
-        /**
-        * Adds a new plugin message to the messages list.
-        */
-        addMessage(pluginMessage: Message): void;
-        /**
-        * Returns the plugin artifacts.
-        */
-        getArtifacts(): Artifact[];
-        /**
-        * Adds a saved artifact to the result - linked via its metadataHash.
-        * Takes the metadataHash of saved artifact.
-        */
-        addArtifact(metadataHash: Common.MetadataHash): void;
-        /**
-        * Adds a commit to the commit container.
-        */
-        addCommit(commitData: Commit): void;
-        /**
-        * Gets the name of the plugin to which the result object belongs.
-        */
-        getPluginName(): string;
-        //------------------------------------------
-        // Methods used by the plugin manager
-        //-----------------------------------------
-        /**
-        * Sets the name of the plugin to which the result object belongs to.
-        */
-        setPluginName(pluginName: string): string;
-        /**
-        * Sets the name of the projectId the result was generated from.
-        */
-        setProjectId(projectId: string): void;
-        /**
-        * Gets the ISO 8601 representation of the time when the plugin started its execution.
-        */
-        getStartTime(): Common.ISO8601;
-        /**
-        * Sets the ISO 8601 representation of the time when the plugin started its execution.
-        */
-        setStartTime(time: Common.ISO8601): void;
-        /**
-        * Gets the ISO 8601 representation of the time when the plugin finished its execution.
-        */
-        getFinishTime(): Common.ISO8601;
-        /**
-        * Sets the ISO 8601 representation of the time when the plugin finished its execution.
-        */
-        setFinishTime(time: Common.ISO8601): void;
-        /**
-        * Gets error if any error occured during execution.
-        * FIXME: should this return an Error object?
-        */
-        getError(): Common.ErrorStr;
-        /**
-        * Sets the error string if any error occured during execution.
-        */
-        setError(error: Common.ErrorStr | Error): void;
-        /**
-        * Serializes this object to a JSON representation.
-        */
-        serialize(): { success: boolean, messages: Message[], pluginName: string, finishTime: string };
-    }
-
-
-    export interface RelationRule {
-        /** The minimum amount of target necessary for the relationship (if not present or '-1' then there is no minimum rule that applies) */
-        min?: number;
-        /** The maximum amount of target necessary for the relationship (if not present or '-1' then there is no maximum rule that applies) */
-        max?: number;
-        absolutePathOfTarget?: {
-            min?: number;
-            max?: number;
-        }
-    }
-
-    export interface Constraint {
-        script: string;
-        info: string;
-        priority: string;
-    }
-
+    /**
+     * An object that has information about a mixin violation in the given node.
+     */
     export interface MixinViolation {
-        severity?: string;
-        type?: string;
+        /** The severity of the given error. */
+        severity?: "error" | "warning";
+        /** What kind of violation */
+        type?: "missing" | "attribute collision" | "set collision"
+        | "pointer collision" | "containment collision" | "aspect collision"
+        | "constraint collision" | undefined;
+        /** The name of the affected rule definition (if available). */
         ruleName?: string | undefined;
+        /** The name of the affected rule definition (if available). */
         targetInfo?: string | undefined;
-        targetNode?: Common.Node | undefined;
+        /** The target node of the violation (if available). */
+        targetNode?: Core.Node | undefined;
+        /** The list of paths of colliding nodes (if any). */
         collisionPaths?: string[];
-        collisionNodes?: Common.Node[];
+        /** The colliding mixin nodes (if any). */
+        collisionNodes?: Core.Node[];
+        /** The description of the violation. */
         message?: string;
+        /** Hint on how to resolve the issue. */
         hint?: string;
     }
-    export interface GmePersisted { rootHash: Common.MetadataHash }
-    export enum TraversalOrder { 'BFS', 'DFS' }
-
-    export interface NodeParameters {
-        parent: Common.Node | null;
-        base: Common.Node | null;
-        relid?: string;
-        guid?: Common.GUID;
-    }
-    export interface LibraryInfo {
-        projectId: string;
-        branchName: string;
-        commitHash: string;
-    }
-    export interface MetaNodeParameters {
-        object: { node: Common.Node, children: Common.Node[] };
-        sensitive: boolean;
-        multiplicity: boolean;
-        aspect: string;
-    }
-    export interface MetaRule {
-        type: string | number | boolean;
-        enum: string[];
-    }
-
-    export interface TraversalOptions {
-        excludeRoot?: boolean;
-        order?: TraversalOrder;
-        maxParallelLoad?: number;
-        stopOnError?: boolean;
-    }
-
-    export interface Core {
-
-        addLibrary: {
-            (node: Common.Node, name: Common.Name, libraryRootHash: string,
-                libraryInfo: LibraryInfo, callback: Common.ObjectCallback): void;
-            (node: Common.Node, name: Common.Name, libraryRootHash: string,
-                libraryInfo: LibraryInfo): Promise<Common.DataObject>;
-        }
-        addMember(node: Common.Node, name: Common.Name, member: Common.Node): undefined | Error;
-        addMixin(node: Common.Node, mixinPath: string): undefined | Error;
-        applyResolution(conflict: {}): {};
-        applyTreeDiff: {
-            (root: Common.Node, patch: Common.DataObject, callback: Common.ObjectCallback): void;
-            (root: Common.Node, patch: Common.DataObject): Promise<Common.DataObject>;
-        }
-        canSetAsMixin(node: Common.Node, mixinPath: string): boolean | string;
-        clearMetaRules(node: Common.Node): undefined | Error;
-        clearMixins(node: Common.Node): undefined | Error;
-        copyNode(node: Common.Node, parent: Common.Node): Common.Node | Error;
-        copyNodes(nodes: Common.Node[], parent: Common.Node): Common.Node[] | Error;
-        createNode(parameters: NodeParameters): Common.Node | Error;
-        createSet(node: Common.Node, name: Common.Name): undefined | Error;
-        delAspectMeta(node: Common.Node, name: Common.Name): undefined | Error;
-        delAspectMetaTarget(node: Common.Node, name: Common.Name, targetPath: string): undefined | Error;
-        delAttribute(node: Common.Node, name: Common.Name): undefined | Error;
-        delAttributeMeta(node: Common.Node, name: Common.Name): undefined | Error;
-        delChildMeta(node: Common.Node, childPath: string): undefined | Error;
-        delConstraint(node: Common.Node, name: Common.Name): undefined | Error;
-        deleteNode(node: Common.Node): undefined | Error;
-        deletePointer(node: Common.Node, name: Common.Name): undefined | Error;
-        deleteSet(node: Common.Node, name: Common.Name): undefined | Error;
-        delMember(node: Common.Node, name: Common.Name, path: string): undefined | Error;
-        delMemberAttribute(node: Common.Node, setName: string, memberPath: string, attrName: string): undefined | Error;
-        delMemberRegistry(node: Common.Node, setName: string, memberPath: string, regName: string): undefined | Error;
-        delMixin(node: Common.Node, mixinPath: string): undefined | Error;
-        delPointerMeta(node: Common.Node, name: Common.Name): undefined | Error;
-        delPointerMetaTarget(node: Common.Node, name: Common.Name, targetPath: string): undefined | Error;
-        delRegistry(node: Common.Node, name: Common.Name): undefined | Error;
-        generateTreeDiff: {
-            (sourceRoot: Common.Node, targetRoot: Common.Node, callBack: Common.ObjectCallback): void;
-            (sourceRoot: Common.Node, targetRoot: Common.Node): Promise<Common.DataObject>;
-        }
-        getAllMetaNodes(node: Common.Node): { [name: string]: Common.Node };
-        getAspectMeta(node: Common.Node, name: Common.Name): string[];
-        /**
-        * Retrieves the value of the given attribute of the given node.
-        * @param node - the node in question.
-        * @param name - the name of the attribute.
-        *
-        * @return The function returns the value of the attribute of the node.
-        * The retrieved attribute should not be modified as is - it should be copied first!
-        * The value can be an object or any primitive type.
-        * If the return value is undefined; the node does not have such attribute defined.
-        * If the node is undefined the returned value is null.
-        */
-        getAttribute(node: Common.Node | undefined, name: Common.Name): Common.OutAttr;
-        getAttributeMeta(node: Common.Node, name: Common.Name): {};
-        /** Get the defined attribute names */
-        getAttributeNames(node: Common.Node): string[];
-        /** Get the base node */
-        getBase(node: Common.Node): Common.Node; // null
-        /** Get the base node at the top of the inheritance chain (typically the fco). */
-        getBaseRoot(node: Common.Node): Common.Node;
-        /** Get the most specific meta node. */
-        getBaseType(node: Common.Node): Common.Node; // null
-        getChild(node: Common.Node, relativeId: string): Common.Node;
-        getChildrenHashes(node: Common.Node): { [name: string]: Common.MetadataHash };
-        getChildrenMeta(node: Common.Node): RelationRule;
-        /** The children paths are available from the node. */
-        getChildrenPaths(parent: Common.Node): string[];
-        getChildrenRelids(parent: Common.Node): string[];
-        getCollectionNames(node: Common.Node): string[];
-        getCollectionPaths(node: Common.Node, name: Common.Name): string[];
-        getConstraint(node: Common.Node, name: Common.Name): Constraint; // null
-        getConstraintNames(node: Common.Node): string[];
-        getFCO(node: Common.Node): Common.Node;
-        getFullyQualifiedName(node: Common.Node): string;
-        getGuid(node: Common.Node): Common.GUID;
-        getHash(node: Common.Node): Common.MetadataHash;
-        getJsonMeta(node: Common.Node): {};
-        getLibraryGuid(node: Common.Node, name: Common.Name): Common.GUID | Error;
-        getLibraryInfo(node: Common.Node, name: Common.Name): LibraryInfo;
-        getLibraryMetaNodes(node: Common.Node, name: Common.Name, onlyOwn?: boolean): Common.Node[];
-        getLibraryNames(node: Common.Node): string[];
-        getLibraryRoot(node: Common.Node, name: Common.Name): Common.Node; // null
-        getMemberAttribute(node: Common.Node, setName: string, memberPath: string, attrName: string): Common.OutAttr;
-        getMemberAttributeNames(node: Common.Node, name: Common.Name, memberPath: string): string[];
-        getMemberOwnAttributeNames(node: Common.Node, name: Common.Name, memberPath: string): string[];
-        getMemberOwnRegistry(node: Common.Node, name: Common.Name, memberPath: string): string[];
-        getMemberPaths(node: Common.Node, name: Common.Name): string[];
-        getMemberRegistry(node: Common.Node, setName: string, memberPath: string, regName: string): Common.OutAttr;
-        getMemberRegistryNames(node: Common.Node, name: Common.Name, memberpath: string): string[];
-        getMixinErrors(node: Common.Node): MixinViolation[];
-        getMixinNodes(node: Common.Node): { [name: string]: Common.Node };
-        getMixinPaths(node: Common.Node): string[];
-        getNamespace(node: Common.Node): string;
-        getOwnAttribute(node: Common.Node, name: Common.Name): Common.OutAttr;
-        getOwnAttributeNames(node: Common.Node): string[];
-        getOwnChildrenPaths(parent: Common.Node): string[];
-        getOwnChildrenRelids(parent: Common.Node): string[];
-        getOwnConstraintNames(node: Common.Node): string[];
-        getOwnJsonMeta(node: Common.Node): Common.DataObject;
-        getOwnMemberPaths(node: Common.Node, name: Common.Name): string[];
-        getOwnMixinNodes(node: Common.Node): { [name: string]: Common.Node };
-        getOwnMixinPaths(node: Common.Node): string[];
-        getOwnPointerNames(node: Common.Node): string[];
-        getOwnPointerPath(node: Common.Node, name: Common.Name): Common.OutPath;
-        getOwnRegistry(node: Common.Node, name: Common.Name): Common.OutAttr;
-        getOwnRegistryNames(node: Common.Node): string[];
-        getOwnValidAspectNames(node: Common.Node): string[];
-        getOwnValidAttributeNames(node: Common.Node): string[];
-        /** The parent paths are available from the node. */
-        getParent(node: Common.Node): Common.Node;
-        /**  Get the path/id */
-        getPath(node: Common.Node): string;
-        getPointerMeta(node: Common.Node, name: Common.Name): RelationRule;
-        getPointerNames(node: Common.Node): string[];
-        getPointerPath(node: Common.Node, name: Common.Name): Common.OutPath;
-        /** Get the assigned registry */
-        getRegistry(node: Common.Node, name: Common.Name): Common.OutAttr;
-        /** Get the defined registry names */
-        getRegistryNames(node: Common.Node): string[];
-        /** Get the relative id */
-        getRelid(node: Common.Node): string;
-        getRoot(node: Common.Node): Common.Node;
-        getSetNames(node: Common.Node): string[];
-        getTypeRoot(node: Common.Node): Common.Node;
-        getValidAspectNames(node: Common.Node): string[];
-        getValidAttributeNames(node: Common.Node): string[];
-        getValidChildrenMetaNodes(parameters: MetaNodeParameters): Common.Node[];
-        getValidChildrenPaths(node: Common.Node): string[];
-        getValidPointerNames(node: Common.Node): string[];
-        getValidSetMetaNodes(parameters: MetaNodeParameters): Common.Node[];
-        getValidSetNames(node: Common.Node): string[];
-        isAbstract(node: Common.Node): boolean;
-        /** Connections are just nodes with two pointers named "src" and "dst". */
-        isConnection(node: Common.Node): boolean;
-        isEmpty(node: Common.Node): boolean;
-        isFullyOverriddenMember(node: Common.Node, setName: string, memberPath: string): boolean;
-        isInstanceOf(node: Common.Node, name: Common.Name): boolean;
-        isLibraryElement(node: Common.Node): boolean;
-        isLibraryRoot(node: Common.Node): boolean;
-        isMemberOf(node: Common.Node): Common.DataObject;
-        isMetaNode(node: Common.Node): boolean;
-        isTypeOf(node: Common.Node, type: Common.Node): boolean;
-        isValidAttributeValueOf(node: Common.Node, name: Common.Name, value: Common.InAttr): boolean;
-        isValidChildOf(node: Common.Node, parent: Common.Node): boolean;
-        isValidTargetOf(node: Common.Node, source: Common.Node, name: Common.Name): boolean;
-        loadByPath: {
-            (startNode: Common.Node, relativePath: string, callback: Common.ObjectCallback): void;
-            (startNode: Common.Node, relativePath: string): Promise<Common.DataObject>;
-        };
-        loadChild: {
-            (parent: Common.Node, relativeId: string, callback: Common.ObjectCallback): void;
-            (parent: Common.Node, relativeId: string): Promise<Common.DataObject>;
-        };
-        /** Loading the children however requires data that is not (necessarily) available */
-        loadChildren: {
-            (parent: Common.Node, callback: Common.ObjectArrayCallback): void;
-            (parent: Common.Node): Promise<Common.DataObject>;
-        }
-        loadCollection: {
-            (target: Common.Node, pointerName: string, callback: Common.ObjectCallback): void;
-            (target: Common.Node, pointerName: string): Promise<Common.DataObject>;
-        };
-        loadOwnSubTree: {
-            (node: Common.Node, callback: Common.ObjectCallback): void;
-            (node: Common.Node): Promise<Common.DataObject>;
-        };
-        loadPointer: {
-            (node: Common.Node, pointerName: string, callback: Common.ObjectCallback): void;
-            (node: Common.Node, pointerName: string): Promise<Common.DataObject>;
-        };
-        loadRoot: {
-            (metadataHash: Common.MetadataHash, callback: Common.ObjectCallback): void;
-            (metadataHash: Common.MetadataHash): Promise<Common.DataObject>;
-        };
-        loadSubTree: {
-            (node: Common.Node, callback: Common.ObjectCallback): void;
-            (node: Common.Node): Promise<Common.DataObject>;
-        };
-        loadTree: {
-            (rootHash: Common.MetadataHash, callback: Common.ObjectCallback): void;
-            (rootHash: Common.MetadataHash): Promise<Common.DataObject>;
-        };
-        moveNode(node: Common.Node, parent: Common.Node): Common.Node | Error;
-        persist(node: Common.Node): GmePersisted;
-        removeLibrary(node: Common.Node, name: Common.Name): void;
-        renameLibrary(node: Common.Node, oldName: string, newName: string): void;
-        setAspectMetaTarget(node: Common.Node, name: Common.Name, target: Common.Node): undefined | Error;
-        setAttribute(node: Common.Node, name: Common.Name, value: Common.InAttr): undefined | Error;
-        setAttributeMeta(node: Common.Node, name: Common.Name, rule: MetaRule): undefined | Error;
-        setBase(node: Common.Node, base: Common.Node): undefined | Error;
-        setChildMeta(node: Common.Node, child: Common.Node, min?: number, max?: number): undefined | Error;
-        setChildrenMetaLimits(node: Common.Node, min?: number, max?: number): undefined | Error;
-        setConstraint(node: Common.Node, name: Common.Name, constraint: Constraint): undefined | Error;
-        setGuid: {
-            (node: Common.Node, guid: Common.GUID, callback: Common.ObjectCallback): undefined | Error;
-            (node: Common.Node, guid: Common.GUID): Promise<Common.DataObject>;
-        };
-        setMemberAttribute: {
-            (node: Common.Node, setName: string, memberPath: string,
-                SVGPathSegLinetoHorizontalAbsme: string,
-                value?: Common.InAttr): undefined | Error;
-        };
-        setMemberRegistry(node: Common.Node, setName: string, memberPath: string, regName: string,
-            value?: Common.InAttr): undefined | Error;
-        setPointer(node: Common.Node, name: Common.Name, target: Common.Node | null): undefined | Error;
-        setPointerMetaLimits(node: Common.Node, memberPath: string,
-            min?: number, max?: number): undefined | Error;
-        setPointerMetaTarget(node: Common.Node, name: Common.Name, target: Common.Node, min?: number, max?: number): undefined | Error;
-        /** Get the assigned registry */
-        setRegistry(node: Common.Node, name: Common.Name, value: Common.InAttr): undefined | Error;
-
-        /**
-         * the visitation function will be called for
-         * every node in the sub-tree, the second parameter of the function
-         * is a callback that should be called to
-         * note to the traversal function that the visitation for a given node is finished.
-         */
-        traverse: {
-            // takes a callback & returning *no* promise
-            (node: Common.Node,
-                options: TraversalOptions,
-                visitFn: (node: Common.Node, finished: Common.VoidFn) => void,
-                callback: Common.ObjectCallback)
-                : void;
-            // takes *no* callback & returns a promise
-            (node: Common.Node,
-                options: TraversalOptions,
-                visitFn: (node: Common.Node, finished: Common.VoidFn) => void)
-                : Promise<void>;
-        }
-        tryToConcatChanges(mine: Common.DataObject, theirs: Common.DataObject): Common.DataObject;
-        updateLibrary: {
-            (node: Common.Node, name: Common.Name, libraryRootHash: Common.MetadataHash,
-                libraryInfo: LibraryInfo, callback: Common.ObjectCallback): void;
-            (node: Common.Node, name: Common.Name, libraryRootHash: Common.MetadataHash,
-                libraryInfo: LibraryInfo): Promise<Common.DataObject>;
-        }
-    }
-
-
 
     /**
-    Logs debug messages
-    https://editor.webgme.org/docs/source/global.html#GmeLogger
+     * The object that represents the atomic element of the containment hierarchy.
+    * https://github.com/webgme/webgme/blob/master/src/client/js/client/gmeNodeGetter.js
     */
-    export interface GmeLogger {
-        debug(fmt: string, msg?: string | undefined): void;
-        info(fmt: string, msg?: string | undefined): void;
-        warn(fmt: string, msg?: string | undefined): void;
-        error(fmt: string, msg?: string | undefined): void;
-        /**
-        Creates a new logger with the same settings
-        and a name that is an augmentation of this logger and the
-        provided string.
-        If the second argument is true
-        - the provided name will be used as is.
-        */
-        fork(fmt: string, reuse?: boolean): GmeLogger;
-    }
-    export interface ProjectInterface {
-
-    }
-
-
-    export interface ThenCallback {
-        (): void;
-    }
-    export interface CatchCallback {
-        (err: Error): void;
-    }
-
-    export interface Promisable {
-        then(callback: ThenCallback): Promisable;
-        catch(callback: CatchCallback): Promisable;
-    }
-
-    /**
-    The base plugin object from which all plugins should inherit.
-    */
-    export interface Base {
-
-        activeNode: Common.Node;
-        activeSelection: Common.Node[];
-        blobClient: Blobs.BlobClient;
-        core: Core;
-        gmeConfig: Config.GmeConfig;
-        isConfigured: boolean;
-        logger: GmeLogger;
-        /**
-         * The resolved META nodes based on the active namespace. Index by the fully qualified meta node names
-         * with the namespace stripped off at the start.
-         *
-         * For example, if a project has a library A with a library B. If the project and the libraries all have
-         * two meta nodes named a and b. Depending on the namespace the META will have the following keys:
-         *
-         * 1) namespace = '' -> ['a', 'b', 'A.a', 'A.b', 'A.B.a', 'A.B.b']
-         * 2) namespace = 'A' -> ['a', 'b', 'B.a', 'B.b']
-         * 3) namespace = 'A.B' -> ['a', 'b']
-         *
-         * (N.B. 'a' and 'b' in example 3) are pointing to the meta nodes defined in A.B.)
-         */
-        META: any;
-        /**
-         * The namespace the META nodes are coming from (set by invoker).
-         * The default is the full meta, i.e. the empty string namespace.
-         * For example, if a project has a library A with a library B. The possible namespaces are:
-         * '', 'A' and 'A.B'.
-         */
-        namespace: string;
-        notificationHandlers: any[];
-        pluginMetadata: Common.Metadata;
-        project: ProjectInterface;
-        result: Result;
-        rootNode: Common.Node;
-
-        addCommitToResult(status: string): void;
-        baseIsMeta(node: any): boolean;
-
-        configure(config: Config.GmeConfig): void;
-        createMessage(node: any, message: string, serverity: string): void;
-        /**
-         * Gets the configuration structure for the plugin.
-         * The ConfigurationStructure defines the configuration for the plugin
-         * and will be used to populate the GUI when invoking the plugin from webGME.
-         */
-        getConfigStructure(): Config.ConfigItem[];
-        getCurrentConfig(): Config.GmeConfig;
-        getDefaultConfig(): Config.GmeConfig;
-        /**
-         * Gets the description of the plugin.
-         */
-        getDescription(): string;
-        getMetadata(): any;
-        getMetaType(node: any): any;
-        /**
-         * Gets the name of the plugin.
-         */
-        getName(): string;
-        /**
-         * Gets the semantic version (semver.org) of the plugin.
-         */
-        getVersion(): string;
-        initialize(logger: GmeLogger, blobClient: Blobs.BlobClient, gmeConfig: Config.GmeConfig): void;
-        isInvalidActiveNode(pluginId: any): any;
-        isMetaTypeOf(node: any, metaNode: any): boolean;
-        /**
-          Main function for the plugin to execute.
-          Notes:
-          - Always log with the provided logger.[error,warning,info,debug].
-          - Do NOT put any user interaction logic UI, etc. inside this method.
-          - handler always has to be called even if error happened.
-     
-          When this runs the core api is used to extract the essential
-          meta-model and the model-instance, these are then written to the mega-model.
-          The mega-model contains all of the models used to describe the target system.
-     
-          https://github.com/ptaoussanis/sente
-          and https://github.com/cognitect/transit-format
-          will be used to connect to the
-          graph database (immortals) where the mega-model is stored.
-     
-          @param {function(string, plugin.PluginResult)} handler - the result handler
-         */
-        main(callback: ResultCallback): void;
-        save(message?: string): Promisable; // returns a promise?
-        sendNotification: {
-            (message: string, callback: Common.ObjectCallback): void;
-            (message: string): Promise<Common.DataObject>;
-        }
-        setCurrentConfig(newConfig: Config.GmeConfig): void;
-        updateMeta(generatedMeta: any): void;
-        updateSuccess(value: boolean, message: TemplateStringsArray): void;
-    }
-
-    class PluginBase implements Base {
+    export class Node {
+        _id: string;
+        constructor(id: string, logger: Global.GmeLogger, state: any, storeNode: ResultCallback<Storage>);
         constructor();
+        getNode(id: Common.NodeId, logger: Global.GmeLogger, state: any, storeNode: ResultCallback<Storage>): Node;
 
-        activeNode: Common.Node;
-        activeSelection: Common.Node[];
-        blobClient: Blobs.BlobClient;
-        core: Core.Core;
-        gmeConfig: Config.GmeConfig;
-        isConfigured: boolean;
-        logger: Core.GmeLogger;
-        META: any;
-        namespace: string;
-        notificationHandlers: any[];
-        pluginMetadata: Common.Metadata;
-        project: Core.ProjectInterface;
-        result: Core.Result;
-        rootNode: Common.Node;
+        getParentId(): Common.NodeId;
+        getId(): Common.NodeId;
+        getRelid(): Common.RelId;
+        getGuid(): GUID;
+        getChildrenIds(): Common.NodeId[];
+        getBaseId(): Common.NodeId;
+        isValidNewBase(basePath: Common.Path): boolean;
+        isValidNewParent(parentPath: Common.Path): boolean;
+        getInheritorIds(): Common.NodeId[];
+        getAttribute(name: Common.Name): Common.OutAttr;
+        getOwnAttribute(name: Common.Name): Common.OutAttr;
+        getEditableAttribute(name: Common.Name): Common.OutAttr;
+        getOwnEditableAttribute(name: Common.Name): Common.OutAttr;
+        getRegistry(name: Common.Name): Common.Registry;
+        getOwnRegistry(name: Common.Name): Common.Registry;
+        getEditableRegistry(name: Common.Name): Common.Registry;
+        getOwnEditableRegistry(name: Common.Name): Common.Registry;
 
-        addCommitToResult(status: string): void;
-        baseIsMeta(node: any): boolean;
-        configure(config: Config.GmeConfig): void;
-        createMessage(node: any, message: string, serverity: string): void;
-        getConfigStructure(): any;
-        getCurrentConfig(): Config.GmeConfig;
-        getDefaultConfig(): Config.GmeConfig;
-        getDescription(): string;
-        getMetadata(): any;
-        getMetaType(node: any): any;
-        getName(): string;
-        getVersion(): string;
-        initialize(logger: GmeLogger, blobClient: Blobs.BlobClient, gmeConfig: Config.GmeConfig): void;
-        isInvalidActiveNode(pluginId: any): any;
-        isMetaTypeOf(node: any, metaNode: any): boolean;
-        main(callback: Core.ResultCallback): void;
-        save(message?: string): Core.Promisable;
-        sendNotification: {
-            (message: string, callback: Core.ResultCallback): void;
-            (message: string): Promise<Common.DataObject>;
-        }
-        setCurrentConfig(newConfig: Config.GmeConfig): void;
-        updateMeta(generatedMeta: any): void;
-        updateSuccess(value: boolean, message: TemplateStringsArray): void;
+        getPointer(name: Common.Name): Common.Pointer;
+        getPointerId(name: Common.Name): Common.SetId;
+        getOwnPointer(name: Common.Name): Common.Pointer;
+        getOwnPointerId(name: Common.Name): Common.SetId;
+        getPointerNames(): Common.Name[];
+        getOwnPointerNames(): Common.Name[];
+
+        getAttributeNames(): Common.Name[];
+        getValidAttributeNames(): Common.Name[];
+        getOwnAttributeNames(): Common.Name[];
+        getOwnValidAttributeNames(): Common.Name[];
+
+        getAttributeMeta(name: Common.Name): Common.AttrMeta;
+        getRegistryNames(): Common.Name[];
+        getOwnRegistryNames(): Common.Name[];
+
+        /** Set */
+        getMemberIds(setId: Common.SetId): Common.Path[];
+        getSetNames(): Common.Name[];
+        getMemberAttributeNames(setId: Common.SetId, memberId: Common.MemberId): Common.Name[];
+        getMemberAttribute(setId: Common.SetId, memberId: Common.MemberId): Common.OutAttr;
+        getEditableMemberAttribute(setId: Common.SetId, memberId: Common.MemberId, name: Common.Name): Common.OutAttr;
+        getMemberRegistryNames(setId: Common.SetId, memberId: Common.MemberId): Common.Name[];
+        getMemberRegistry(setId: Common.SetId, memberId: Common.MemberId, name: Common.Name): Common.Registry;
+        getEditableMemberRegistry(setId: Common.SetId, memberId: Common.MemberId, name: Common.Name): Common.Registry;
+
+        /** META */
+        getValidChildrenTypes(): Common.NodeId[];
+        getValildAttributeNames(): Common.Name[];
+        isValidAttributeValueOf(name: Common.Name, value: any): boolean;
+        getValidPointerNames(): Common.Name[];
+        getValidSetNames(): Common.Name[];
+        getConstraintNames(): Common.Name[];
+        getOwnConstraintNames(): Common.Name[];
+        getConstraint(name: Common.Name): Constraint;
+        toString(): string;
+
+        getCollectionPaths(name: Common.Name): Common.Path[];
+        getInstancePaths(): Common.Path[];
+        getJsonMeta(): Common.Metadata[];
+
+        isConnection(): boolean;
+        isAbstract(): boolean;
+        isLibraryRoot(): boolean;
+        isLibraryElement(): boolean;
+        getFullyQualifiedName(): Common.Name;
+        getNamespace(): Common.Name;
+
+        getLibraryGuid(): GUID;
+        getCrosscutsInfo(): Common.CrosscutsInfo;
+        getValidChildrenTypesDetailed(aspect: Common.Aspect, noFilter: boolean): Dictionary<any>;
+        getValidSetMemberTypesDetailed(setName: Common.Name): { [key: string]: any };
+        getMetaTypeId(): Node | null;
+        getBaseTypeId(): Node | null;
+        isMetaNode(): boolean;
+        isTypeOf(typePath: Common.Path): boolean;
+        isValidChildOf(parentPath: Common.Path): boolean;
+        getValidChildrenIds(): Common.NodeId[];
+        isValidTargetOf(sourcePath: Common.Path, name: Common.Name): boolean;
+        getValidAspectNames(): Common.Name[];
+        getOwnValidAspectNames(): Common.Name[];
+        getAspectMeta(): Common.Metadata;
+
+        /** MixIns */
+        getMixinPaths(): Common.Path[];
+        canSetAsMixin(mixinPath: Common.Path): boolean;
+        isReadOnly(): boolean;
+
     }
+
+    /** 
+     * Unique SHA-1 hash for the node object.
+     */
+    export type ObjectHash = string;
+
+    /**
+     * An object that represents a relational type rule-set (pointer/set).
+     */
+    export interface RelationRuleDetail {
+        /** 
+         * The minimum amount of target necessary for the relationship 
+         * (if not present or '-1' then there is no minimum rule that applies) 
+         */
+        min?: number;
+        /** 
+         * The maximum amount of target necessary for the relationship 
+         * (if not present or '-1' then there is no maximum rule that applies) 
+         */
+        max?: number;
+    }
+    /**
+     * special rules regarding the given type (if the object is empty, it still represents that the type is a valid target of the relationship)
+     */
+    export interface RelationRuleDictionary {
+        [absolutePathOfTarget: string]: RelationRuleDetail;
+    }
+    export type RelationRule = RelationRuleDetail & RelationRuleDictionary;
+}
+
+
+export interface Message {
+    msg: string;
+}
+
+export type ArtifactCallback = (err: Error, result: Artifact) => void;
+
+export interface Artifact {
+    name: Common.Name;
+    blobClient: Blobs.BlobClient;
+    descriptor: Blobs.BlobMetadata;
+
+    constructor(name: Common.Name, blobClient: Blobs.BlobClient, descriptor: Blobs.BlobMetadata): void;
+
+    /** Adds content to the artifact as a file. */
+    addFile: {
+        (name: Common.Name, content: Blobs.ObjectBlob, callback: ResultCallback<Common.MetadataHash>): void;
+        (name: Common.Name, content: Blobs.ObjectBlob): Promise<Common.MetadataHash>;
+    }
+    /** Adds files as soft-link. */
+    addFileAsSoftLink: {
+        (name: Common.Name, content: Blobs.ObjectBlob, callback: ResultCallback<Common.MetadataHash>): void;
+        (name: Common.Name, content: Blobs.ObjectBlob): Promise<Common.MetadataHash>;
+    }
+    /** Adds multiple files. */
+    addFiles: {
+        (files: { [name: string]: Blobs.ObjectBlob }, callback: ResultCallback<Common.MetadataHash[]>): void;
+        (files: { [name: string]: Blobs.ObjectBlob }): Promise<Common.MetadataHash[]> | Promise<string>;
+    }
+    /** Adds multiple files as soft-links. */
+    addFilesAsSoftLinks: {
+        (files: { [name: string]: Blobs.ObjectBlob }, callback: ResultCallback<Common.MetadataHash[]>): void;
+        (files: { [name: string]: Blobs.ObjectBlob }): Promise<Common.MetadataHash[]>;
+    }
+    /** Adds a metadataHash to the artifact using the given file path. */
+    addMetadataHash: {
+        (name: Common.Name, metadataHash: Common.MetadataHash, size: number, callback: ResultCallback<Common.MetadataHash>): void;
+        (name: Common.Name, metadataHash: Common.MetadataHash, size?: number): Promise<Common.MetadataHash>;
+
+        (objectHashes: { [name: string]: string }, callback: ResultCallback<Common.MetadataHash>): void;
+        (objectHashes: { [name: string]: string }): Promise<Common.MetadataHash>;
+    }
+    /** Adds metadataHashes to the artifact using the given file paths. */
+    addMetadataHashes: {
+        (name: Common.Name, metadataHash: Common.MetadataHash, size: number, callback: ResultCallback<Common.MetadataHash[]>): void;
+        (name: Common.Name, metadataHash: Common.MetadataHash, size?: number): Promise<Common.MetadataHash[]>;
+
+        (objectHashes: { [name: string]: string }, callback: ResultCallback<Common.MetadataHash[]>): void;
+        (objectHashes: { [name: string]: string }): Promise<Common.MetadataHash[]>;
+    }
+    /** Adds a metadataHash to the artifact using the given file path. */
+    addObjectHash: {
+        (name: Common.Name, metadataHash: Common.MetadataHash, callback: ResultCallback<Common.MetadataHash>): void;
+        (name: Common.Name, metadataHash: Common.MetadataHash): Promise<Common.MetadataHash>;
+    }
+    /** Adds metadataHashes to the artifact using the given file paths. */
+    addObjectHashes: {
+        (objectHashes: { [name: string]: string }, callback: ResultCallback<Common.MetadataHash[]>): void;
+        (objectHashes: { [name: string]: string }): Promise<Common.MetadataHash[]>;
+    }
+    /** Saves this artifact and uploads the metadata to the server's storage. */
+    save: {
+        (callback: ResultCallback<Common.MetadataHash>): void;
+        (message?: string): Promise<Common.MetadataHash>;
+    }
+}
+/**
+ commitHash - metadataHash of the commit.
+ status - storage.constants./SYNCED/FORKED/MERGED
+*/
+export interface Commit {
+    commitHash: Common.MetadataHash;
+    status: string;
+    branchName: string;
+}
+
+export interface Result {
+    success: boolean;
+    messages: string[]; // array of PluginMessages
+    artifacts: Common.ArtifactHash[]; // array of hashes
+    pluginName: string;
+    startTime: Date;
+    finishTime: Date;
+    error: Error;
+    projectId: any;
+    commits: any[];
+
+    /**
+    * Gets the success flag of this result object
+    */
+    getSuccess(): boolean;
+    /**
+    * Sets the success flag of this result.
+    */
+    setSuccess(value: boolean): void;
+    /**
+    * Returns with the plugin messages.
+    */
+    getMessages(): Message[];
+    /**
+    * Adds a new plugin message to the messages list.
+    */
+    addMessage(pluginMessage: Message): void;
+    /**
+    * Returns the plugin artifacts.
+    */
+    getArtifacts(): Artifact[];
+    /**
+    * Adds a saved artifact to the result - linked via its metadataHash.
+    * Takes the metadataHash of saved artifact.
+    */
+    addArtifact(metadataHash: Common.MetadataHash): void;
+    /**
+    * Adds a commit to the commit container.
+    */
+    addCommit(commitData: Commit): void;
+    /**
+    * Gets the name of the plugin to which the result object belongs.
+    */
+    getPluginName(): string;
+    //------------------------------------------
+    // Methods used by the plugin manager
+    //-----------------------------------------
+    /**
+    * Sets the name of the plugin to which the result object belongs to.
+    */
+    setPluginName(pluginName: string): string;
+    /**
+    * Sets the name of the projectId the result was generated from.
+    */
+    setProjectId(projectId: string): void;
+    /**
+    * Gets the ISO 8601 representation of the time when the plugin started its execution.
+    */
+    getStartTime(): Common.ISO8601;
+    /**
+    * Sets the ISO 8601 representation of the time when the plugin started its execution.
+    */
+    setStartTime(time: Common.ISO8601): void;
+    /**
+    * Gets the ISO 8601 representation of the time when the plugin finished its execution.
+    */
+    getFinishTime(): Common.ISO8601;
+    /**
+    * Sets the ISO 8601 representation of the time when the plugin finished its execution.
+    */
+    setFinishTime(time: Common.ISO8601): void;
+    /**
+    * Gets error if any error occured during execution.
+    * FIXME: should this return an Error object?
+    */
+    getError(): Common.ErrorStr;
+    /**
+    * Sets the error string if any error occured during execution.
+    */
+    setError(error: Common.ErrorStr | Error): void;
+    /**
+    * Serializes this object to a JSON representation.
+    */
+    serialize(): { success: boolean, messages: Message[], pluginName: string, finishTime: string };
+}
+
+
+export enum TraversalOrder { 'BFS', 'DFS' }
+
+/**
+ * The details of a nodes creation.
+ */
+export interface NodeParameters {
+    /** the parent of the node to be created. */
+    parent?: Core.Node | null;
+    /** the base of the node to be created. */
+    base?: Core.Node | null;
+    /** the relative id of the node to be created 
+     * (if reserved, the function returns the node behind the relative id) */
+    relid?: Common.RelId;
+    /** the GUID of the node to be created */
+    guid?: Core.GUID;
+}
+/**
+ * information about your library project.
+ */
+export interface LibraryInfo {
+    /** the projectId of your library. */
+    projectId: string;
+    /** the branch that your library follows in the origin project. */
+    branchName: string;
+    /** the version of your library. */
+    commitHash: string;
+}
+/**
+ * used by getValidChildrenMetaNodes
+ */
+export interface MetaNodeParameters {
+    /** the input parameters of the query. */
+    object: {
+        node: Core.Node,
+        children?: Core.Node[]
+    };
+    /** 
+     * if true, the query filters out the 
+     * abstract and connection-like nodes 
+     * (the default value is false) 
+     */
+    sensitive?: boolean;
+    /**
+     * if true, 
+     * the query tries to filter out even 
+     * more nodes according to the multiplicity rules 
+     * (the default value is false, 
+     * the check is only meaningful if all the children were passed)
+     */
+    multiplicity?: boolean;
+    /**
+     * if given, 
+     * the query filters to contain only types 
+     * that are visible in the given aspect.
+     */
+    aspect?: string;
+}
+/**
+ * used by getValidSetMetaNodes
+ */
+export interface MetaSetParameters {
+    /** the input parameters of the query. */
+    object: {
+        /** the node in question. */
+        node: Core.Node;
+        /** the name of the set. */
+        name: Common.Name;
+        /** the members of the set of the node in question. */
+        members?: Core.Node[]
+    };
+    /** 
+     * if true, the query filters out the 
+     * abstract and connection-like nodes 
+     * (the default value is false) 
+     */
+    sensitive?: boolean;
+    /**
+     * if true, 
+     * the query tries to filter out even 
+     * more nodes according to the multiplicity rules 
+     * (the default value is false, 
+     * the check is only meaningful if all the children were passed)
+     */
+    multiplicity?: boolean;
+}
+export interface MetaRule {
+    type: string | number | boolean;
+    enum: string[];
+}
+
+export interface TraversalOptions {
+    excludeRoot?: boolean;
+    order?: TraversalOrder;
+    maxParallelLoad?: number;
+    stopOnError?: boolean;
+}
+
+/**
+ * The relationship between the core namespace 
+ * and the core interface is not clearly expressed.
+ * 
+ * https://editor.dev.webgme.org/docs/source/Core.html
+ */
+export interface Core {
+
+    /**
+     * It adds a project as library to your project by copying it over. 
+     * The library will be a node with the given name directly 
+     * under your project's ROOT. 
+     * It becomes a read-only portion of your project. 
+     * You will only be able to manipulate it with library functions, 
+     * but cannot edit the individual nodes inside. 
+     * However you will be able to instantiate or copy 
+     * the nodes into other places of your project. 
+     * Every node that was part of the META in the 
+     * originating project becomes part of your project's meta.
+     * 
+     * @param node any regular node in your project.
+     * @param name the name of the library you wish to use as a namespace in your project.
+     * @param libraryRootHash the hash of your library's root (must exist in the project's collection at the time of call).
+     * @param libraryInfo information about your project.
+     */
+    addLibrary: {
+        (node: Core.Node, name: Common.Name, libraryRootHash: string,
+            libraryInfo: LibraryInfo, callback: ResultCallback<Core.DataObject>): void;
+        (node: Core.Node, name: Common.Name, libraryRootHash: string,
+            libraryInfo: LibraryInfo): Promise<Core.DataObject>;
+    }
+    /**
+     * Adds a member to the given set.
+     * @param node the owner of the set.
+     * @param name the name of the set.
+     * @param member the new member of the set.
+     * @return If the set is not allowed to be modified, 
+     * the function returns an error.
+     */
+    addMember(node: Core.Node, name: Common.Name, member: Core.Node): undefined | Error;
+    /**
+     * Adds a mixin to the mixin set of the node.
+     * @param node the node in question.
+     * @param the path of the mixin node.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    addMixin(node: Core.Node, mixinPath: Common.Path): undefined | Error;
+    /**
+     * When our attempt to merge two patches ended in some conflict, 
+     * then we can modify that result highlighting that in case of every conflict, 
+     * which side we prefer (mine vs. theirs). 
+     * If we give that object as an input to this function, 
+     * it will finish the merge resolving the conflict according 
+     * our settings and present a final patch.
+     * @param conflict the object that represents our 
+     * settings for every conflict and the so-far-merged patch.
+     * @return The function results in a tree structured patch 
+     * object that contains the changes that cover both 
+     * parties modifications 
+     * (and the conflicts are resolved according the input settings).
+     */
+    applyResolution(conflict: {}): {};
+    /**
+     * Apply changes to the current project.
+     * @param root
+     * @param patch
+     * @return only reports errors.
+     */
+    applyTreeDiff: {
+        (root: Core.Node, patch: Core.DataObject, callback: ResultCallback<Core.DataObject>): void;
+        (root: Core.Node, patch: Core.DataObject): Promise<Core.DataObject>;
+    }
+    /**
+     * Checks if the given path can be added as a mixin to the given node.
+     * @param node the node in question.
+     * @param mixinPath the path of the mixin node.
+     * @return Returns if the mixin could be added, or the reason why it is not.
+     */
+    canSetAsMixin(node: Core.Node, mixinPath: Common.Path): boolean | string;
+    /**
+     * Removes all META rules that were specifically defined for the node 
+     * (so the function do not touches inherited rules).
+     * @param node the node in question.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    clearMetaRules(node: Core.Node): undefined | Error;
+    /**
+     * Removes all mixins for a given node.
+     * @param node the node in question.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    clearMixins(node: Core.Node): undefined | Error;
+    /**
+     * Copies the given node into parent.
+     * @param node the node to be copied.
+     * @param parent the target parent where the copy will be placed.
+     * @return The function returns the copied node or an error if the copy is not allowed.
+     */
+    copyNode(node: Core.Node, parent: Core.Node): Core.Node | Error;
+    /**
+     * Copies the given nodes into parent.
+     * @param nodes the nodes to be copied.
+     * @param parent the target parent where the copies will be placed.
+     * @return The function returns an array of the copied nodes or an error 
+     * if any of the nodes are not allowed to be copied to the given parent.
+     */
+    copyNodes(nodes: Core.Node[], parent: Core.Node): Core.Node[] | Error;
+    /**
+     * Creates a node according to the given parameters.
+     * @param parameters the details of the creation.
+     * @return The function returns the created node or null if no node was 
+     * created or an error if the creation with the given parameters are not allowed.
+     */
+    createNode(parameters: NodeParameters): Core.Node | Error;
+    /**
+     * Creates a set for the node.
+     * @param node the node that will own the set.
+     * @param name the name of the set.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    createSet(node: Core.Node, name: Common.Name): undefined | Error;
+    /**
+     * Removes the given aspect rule of the node.
+     * @param node the node whose aspect rule will be deleted.
+     * @param name the name of the aspect rule.
+     * @return  If the node is not allowed to be modified, the function returns an error.
+     */
+    delAspectMeta(node: Core.Node, name: Common.Name): undefined | Error;
+    /**
+     * Removes a valid type from the given aspect of the node.
+     * @param node the node in question.
+     * @param name the name of the aspect rule.
+     * @param targetPath the absolute path of the valid type of the aspect.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    delAspectMetaTarget(node: Core.Node, name: Common.Name, targetPath: Common.Path): undefined | Error;
+    /**
+     * Removes the given attributes from the given node.
+     * @param node the node in question.
+     * @param name the name of the attribute.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    delAttribute(node: Core.Node, name: Common.Name): undefined | Error;
+    /**
+     * Removes an attribute definition from the META rules of the node.
+     * @param name the node in question.
+     * @param name the name of the attribute.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    delAttributeMeta(node: Core.Node, name: Common.Name): undefined | Error;
+    /**
+     * Removes the given child rule from the node.
+     * @param the node in question.
+     * @param childPath the absolute path of the child which rule is to be removed from the node.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    delChildMeta(node: Core.Node, childPath: Common.Path): undefined | Error;
+    /**
+     * Removes a constraint from the node.
+     * @param node the node in question.
+     * @param name the name of the constraint.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    delConstraint(node: Core.Node, name: Common.Name): undefined | Error;
+    /**
+     * Removes a node from the containment hierarchy.
+     * It also removes all contained nodes.
+     * @param node the node in question.
+     * @return If the operation is not allowed it returns an error.
+     */
+    deleteNode(node: Core.Node): undefined | Error;
+    /**
+     * Removes the pointer from the node.
+     * @param node the node in question.
+     * @param name the name of the pointer.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    deletePointer(node: Core.Node, name: Common.Name): undefined | Error;
+    /**
+     * Removes a set from the node.
+     * @param node the node in question.
+     * @param name the name of the set.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    deleteSet(node: Core.Node, name: Common.Name): undefined | Error;
+    /**
+     * Removes a member from the set. The functions doesn't remove the node itself.
+     * @param node the node in question.
+     * @param name the name of the set.
+     * @param path the path to the member to be removed.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    delMember(node: Core.Node, name: Common.Name, path: Common.Path): undefined | Error;
+    /**
+     * Removes an attribute which represented a property of the given set membership.
+     * @param node the node in question.
+     * @param setName the name of the set.
+     * @param memberPath the path to the member to be removed.
+     * @param attrName the name of the attribute.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    delMemberAttribute(node: Core.Node, setName: Common.Name, memberPath: Common.Path, attrName: Common.Name): undefined | Error;
+    /**
+     * Removes a registry entry which represented a property of the given set membership.
+     * @param node the node in question.
+     * @param setName the name of the set.
+     * @param memberPath the path to the member to be removed.
+     * @param regName the name of the registry entry.
+     * @return If the node is not allowed to be modified, the function returns an error.
+     */
+    delMemberRegistry(node: Core.Node, setName: Common.Name, memberPath: Common.Path, regName: Common.Name): undefined | Error;
+    /**
+     * Removes a mixin from the mixin set of the node.
+     * @param node the node in question.
+     * @param mixinPath the path of the mixin node.
+     * @return If the node is not allowed to be modified, the function returns an error. 
+     */
+    delMixin(node: Core.Node, mixinPath: Common.Path): undefined | Error;
+    /**
+     * Removes the complete META rule regarding the given pointer/set of the node.
+     * @param node the node in question.
+     * @param name the name of the pointer/set.
+     * @return If the node is not allowed to be modified, the function returns an error. 
+     */
+    delPointerMeta(node: Core.Node, name: Common.Name): undefined | Error;
+    /**
+     * Removes a possible target type from the pointer/set of the node.
+     * @param node the node in question.
+     * @param name the name of the pointer/set.
+     * @param targetPath the absolute path of the possible target type.
+     * @return If the node is not allowed to be modified, the function returns an error. 
+     */
+    delPointerMetaTarget(node: Core.Node, name: Common.Name, targetPath: string): undefined | Error;
+    /**
+     * Removes the given registry entry from the given node.
+     * @param node the node in question.
+     * @param name the name of the registry entry.
+     * @return If the node is not allowed to be modified, the function returns an error. 
+     */
+    delRegistry(node: Core.Node, name: Common.Name): undefined | Error;
+    /**
+     * Removes the attribute entry for the set at the node.
+     * @param node the node in question.
+     * @param setName the name of the set.
+     * @param attrName the name of the attribute entry.
+     * @return If the node is not allowed to be modified, the function returns an error. 
+     */
+    delSetAttribute(node: Core.Node, setName: Common.Name, attrName: Common.Name): undefined | Error;
+    /**
+     * Removes the registry entry for the set at the node.
+     * @param node the node in question.
+     * @param setName the name of the set.
+     * @param regName the name of the registry entry.
+     * @return If the node is not allowed to be modified, the function returns an error. 
+     */
+    delSetRegistry(node: Core.Node, setName: Common.Name, regName: Common.Name): undefined | Error;
+    /**
+     * Generates a differential tree among the two states 
+     * of the project that contains the necessary changes 
+     * that can modify the source to be identical to the target. 
+     * 
+     * @param sourceRoot the root node of the source state.
+     * @param targetRoot the root node of the target state.
+     * @return the result is in form of a json object.
+     */
+    generateTreeDiff: {
+        (sourceRoot: Core.Node, targetRoot: Core.Node, callBack: ResultCallback<Core.DataObject>): void;
+        (sourceRoot: Core.Node, targetRoot: Core.Node): Promise<Core.DataObject>;
+    }
+    /**
+     * Returns all META nodes.
+     * @param node any node of the containment hierarchy.
+     * @return the function returns a dictionary. 
+     * The keys of the dictionary are the absolute 
+     * paths of the META nodes of the project. 
+     * Every value of the dictionary is a module:Core~Node.
+     */
+    getAllMetaNodes(node: Core.Node): Dictionary<Core.Node>;
+    /**
+     * Returns the list of valid children types of the given aspect.
+     * @param node the node in question
+     * @param name the name of the aspect.
+     * @return the function returns a list of absolute paths 
+     * of nodes that are valid children of the node and fits 
+     * to the META rules defined for the aspect. 
+     * Any children, visible under the given aspect of 
+     * the node must be an instance of at least one node 
+     * represented by the absolute paths.
+     */
+    getAspectMeta(node: Core.Node, name: Common.Name): Common.Path[];
+    /**
+    * Retrieves the value of the given attribute of the given node.
+    * @param node - the node in question.
+    * @param name - the name of the attribute.
+    *
+    * @return The function returns the value of the attribute of the node.
+    * The retrieved attribute should not be modified as is - it should be copied first!
+    * The value can be an object or any primitive type.
+    * If the return value is undefined; the node does not have such attribute defined.
+    * If the node is undefined the returned value is null.
+    */
+    getAttribute(node: Core.Node | undefined, name: Common.Name): Common.OutAttr;
+    /**
+     * Returns the definition object of an attribute from the META rules of the node.
+     * @param node the node in question.
+     * @param name the name of the attribute.
+     * @return The function returns the definition object, where type is always defined.
+     */
+    getAttributeMeta(node: Core.Node, name: Common.Name): Common.DefObject;
+    /** 
+     * Get the defined attribute names for the node.
+     * @param node the node in question.
+     * @return The function returns an array of the names of the attributes of the node.
+     */
+    getAttributeNames(node: Core.Node): Common.Name[];
+    /** 
+     * Get the base node 
+     * @param node the node in question.
+     * @return the base of the given node or null if there is no such node.
+     */
+    getBase(node: Core.Node): Core.Node | null;
+    /** 
+     * Get the base node at the top of the inheritance chain.
+     * @param node the node in question.
+     * @return the root of the inheritance chain (usually the FCO). 
+     */
+    getBaseRoot(node: Core.Node): Core.Node;
+    /** 
+     * Get the most specific meta node;
+     * the closest META node of the node in question. 
+     * @param node the node in question.
+     * @return the first node (including itself) among the 
+     * inheritance chain that is a META node. 
+     * It returns null if it does not find such node 
+     * (ideally the only node with this result is the ROOT).
+     */
+    getBaseType(node: Core.Node): Core.Node | null;
+    /** 
+     * Get the most specific meta nodes;
+     * Searches for the closest META node of the 
+     * node in question and the direct mixins of that node. 
+     * @param node the node in question.
+     * @return the closest Meta node that is a base of the 
+     * given node plus it returns all the mixin nodes 
+     * associated with the base in a path-node dictionary.
+     */
+    getBaseTypes(node: Core.Node): Dictionary<Core.Node> | null;
+    /**
+     * Retrieves the child of the input node at the given relative id.
+     * It is not an asynchronous load and it automatically creates 
+     * the child under the given relative id if no child was there 
+     * beforehand.
+     * @param node the node in question.
+     * @param relativeId the relative id of the child in question.
+     * @return an empty node if it was created as a result 
+     * of the function or return the already existing 
+     * and loaded node if it found.
+     */
+    getChild(node: Core.Node, relativeId: string): Core.Node;
+    /**
+     * Collects the data hash values of the children of the node.
+     * @param node the node in question.
+     * @return a dictionary of module:Core~ObjectHash that stored in 
+     * pair with the relative id of the corresponding child of the node.
+     */
+    getChildrenHashes(node: Core.Node): Dictionary<Common.MetadataHash>;
+    /**
+     * Return a JSON representation of the META rules 
+     * regarding the valid children of the given node.
+     * @param node the node in question.
+     * @return a detailed JSON structure that represents the 
+     * META rules regarding the possible children of the node.
+     */
+    getChildrenMeta(node: Core.Node): Core.RelationRule;
+    /** 
+     * Collects the paths of all the children of the given node.
+     * @param node the node in question.
+     * @return an array of the absolute paths of the children.
+     */
+    getChildrenPaths(parent: Core.Node): Common.Path[];
+    /**
+     * Collects the relative ids of all the children of the given node.
+     * @param parent the container node in question.
+     * @return an array of the relative ids.
+     */
+    getChildrenRelids(parent: Core.Node): Common.RelId[];
+    /**
+     * Retrieves a list of the defined pointer names that has the node as target.
+     * @param node the node in question.
+     * @return an array of the names of the pointers pointing to the node.
+     */
+    getCollectionNames(node: Core.Node): string[];
+    /**
+     * Retrieves a list of absolute paths of nodes that has a 
+     * given pointer which points to the given node.
+     * @param node the node in question.
+     * @param name the name of the pointer.
+     * @return an array of absolute paths of nodes having
+     *  pointers pointing to the node.
+     */
+    getCollectionPaths(node: Core.Node, name: Common.Name): Common.Path[];
+    /**
+     * Gets a constraint object of the node.
+     * @param node the node in question.
+     * @param name the name of the constraint.
+     * @return the defined constraint or null if it was not defined for the node
+     */
+    getConstraint(node: Core.Node, name: Common.Name): Core.Constraint | null
+    /**
+     * Retrieves the list of constraint names defined for the node.
+     * @param node the node in question.
+     * @return the array of names of constraints available for the node.
+     */
+    getConstraintNames(node: Core.Node): Common.Name[];
+    /**
+     * Return the root of the inheritance chain of your Meta nodes.
+     * @param node the node in question.
+     * @return the acting FCO of your project.
+     */
+    getFCO(node: Core.Node): Core.Node;
+    /**
+     * @param node the node in question.
+     * @return the fully qualified name of the node, 
+     * which is the list of its namespaces separated 
+     * by dot and followed by the name of the node.
+     */
+    getFullyQualifiedName(node: Core.Node): Common.Name;
+    /**
+     * @param node the node in question.
+     * @return the globally unique identifier for the node.
+     */
+    getGuid(node: Core.Node): Core.GUID;
+    /**
+     * Returns the calculated database id of the data of the node.
+     * @param node the node in question.
+     * @return the so called Hash value of the data of the given node.
+     *  If the string is empty, then it means that the 
+     *  node was mutated but not yet saved to the database, 
+     *  so it does not have a hash temporarily.
+     */
+    getHash(node: Core.Node): Common.MetadataHash;
+    /**
+     * Collects the paths of all the instances of the given node.
+     * @param node the node in question.
+     * @return an array of the absolute paths of the instances.
+     */
+    getInstancePaths(node: Core.Node): Common.Path[];
+    /**
+     * Gives a JSON representation of the META rules of the node.
+     * @param node the node in question.
+     * @return an object that represents all the META rules of the node.
+     */
+    getJsonMeta(node: Core.Node): Common.MetaRules;
+    /**
+     * Returns the origin GUID of any library node.
+     * @param node the node in question.
+     * @param name of the library where we want to deduct the GUID from. 
+     * If not given, than the GUID is computed from the 
+     * direct library root of the node
+     * @return the origin GUID of the node or error if the query cannot be fulfilled.
+     */
+    getLibraryGuid(node: Core.Node, name: Common.Name | undefined): Core.GUID | Error;
+    /**
+     * Returns the info associated with the library.
+     * @param node the node in question.
+     * @param name of the library.
+     * @return the information object, stored alongside the library 
+     * (that basically carries metaData about the library).
+     */
+    getLibraryInfo(node: Core.Node, name: Common.Name): LibraryInfo;
+    /**
+     * Returns all the Meta nodes within the given library. 
+     * By default it will include nodes defined in any 
+     * library within the given library.
+     * @param node the node in question.
+     * @param name of the library.
+     * @param onlyOwn if true only returns with Meta nodes defined in the library itself.
+     * @return an array of core nodes that are part of your meta from the given library.
+     */
+    getLibraryMetaNodes(node: Core.Node, name: Common.Name, onlyOwn?: boolean): Core.Node[];
+    /**
+     * Gives back the list of libraries in your project.
+     * @param node the node in question.
+     * @param name of the library.
+     * @param onlyOwn if true only returns with Meta nodes defined in the library itself.
+     * @return the fully qualified names of all the 
+     * libraries in your project (even embedded ones).
+     */
+    getLibraryNames(node: Core.Node): Common.Name[];
+    /**
+     * @param node the node in question.
+     * @param name of the library.
+     * @return the library root node or null, if the library is unknown.
+     */
+    getLibraryRoot(node: Core.Node, name: Common.Name): Core.Node | null;
+    /**
+     * @param node the node in question.
+     * @param setName of the set.
+     * @param memberPath the absolute path of the member node.
+     * @return the value of the attribute. 
+     * If it is undefined, 
+     * then there is no such attributed connected to the given set membership.
+     */
+    getMemberAttribute(node: Core.Node, setName: Common.Name,
+        memberPath: Common.Path, attrName: Common.Name): Common.OutAttr;
+    /**
+     * @param node the node in question.
+     * @param name of the set.
+     * @param memberPath the absolute path of the member node.
+     * @return the array of names of attributes that 
+     * represents some property of the membership.
+     */
+    getMemberAttributeNames(node: Core.Node, name: Common.Name, memberPath: Common.Path): string[];
+    /**
+     * @param node the node in question.
+     * @param name of the set.
+     * @param memberPath the absolute path of the member node.
+     * @return the array of names of attributes that represents some property of the membership.
+     */
+    getMemberOwnAttributeNames(node: Core.Node, name: Common.Name, memberPath: Common.Path): string[];
+    /**
+     * @param node the node in question.
+     * @param name of the set.
+     * @param memberPath the absolute path of the member node.
+     * @param regName the name of the registry entry.
+     * @return the value of the registry. 
+     * If it is undefined, than there is no such registry connected to the given set membership.
+     */
+    getMemberOwnRegistry(node: Core.Node, name: Common.Name, memberPath: string): Common.OutAttr;
+    /**
+     * Return the names of the registry entries defined 
+     * for the set membership specifically defined to the member node.
+     * @param node the node in question.
+     * @param name of the set.
+     * @param memberPath the absolute path of the member node.
+     * @return the array of names of registry entries that represents some property of the membership.
+     */
+    getMemberOwnRegistryNames(node: Core.Node, name: Common.Name): string[];
+    /**
+     * Returns the list of absolute paths of the members of the given set of the given node.
+     * @param node the node in question.
+     * @param name of the set.
+     * @return an array of absolute path strings of the member nodes of the set.
+     */
+    getMemberPaths(node: Core.Node, name: Common.Name): string[];
+    /**
+     * @param node the node in question.
+     * @param setName of the set.
+     * @param memberPath the absolute path of the member node.
+     * @param regName the name of the registry entry.
+     * @return the value of the registry. 
+     * If it is undefined, then there is no such registry connected to the given set membership.
+     */
+    getMemberRegistry(node: Core.Node, setName: string, memberPath: string, regName: string): Common.OutAttr;
+    /**
+     * @param node the node in question.
+     * @param name of the set.
+     * @param memberPath the absolute path of the member node.
+     * @return the array of names of registry entries that represents some property of the membership.
+     */
+    getMemberRegistryNames(node: Core.Node, name: Common.Name, memberpath: string): Common.Name[];
+    /**
+     * Checks if the mixins allocated with the node can be used. 
+     * Every mixin node should be on the Meta. 
+     * Every rule (attribute/pointer/set/aspect/containment/constraint) 
+     * should be defined only in one mixin.
+     * @param node the node in question.
+     * @return the array of violations. If the array is empty, there are no violations.
+     */
+    getMixinErrors(node: Core.Node): Core.MixinViolation[];
+    /**
+     * Gathers the mixin nodes associated with the node.
+     * @param node the node in question.
+     * @return the dictionary of the mixin nodes keyed by their paths.
+     */
+    getMixinNodes(node: Core.Node): Dictionary<Core.Node>;
+    /**
+     * Gathers the paths of the mixin nodes associated with the node.
+     * @param node the node in question.
+     * @return the paths of the mixins in an array.
+     */
+    getMixinPaths(node: Core.Node): Common.Path[];
+    /**
+     * Returns the resolved namespace for the node. 
+     * If node is not in a library it returns the empty string. 
+     * If the node is in a library of a library - 
+     * the full name space is the library names joined together by dots.
+     * @param node the node in question.
+     * @return the name space of the node.
+     */
+    getNamespace(node: Core.Node): Common.Name;
+    /**
+     * @param node the node in question.
+     * @return the value of the attribute defined specifically for the node. 
+     * If undefined then it means that there is no such 
+     * attribute defined directly for the node, 
+     * meaning that it either inherits some value or 
+     * there is no such attribute at all.
+     */
+    getOwnAttribute(node: Core.Node, name: Common.Name): Common.OutAttr;
+    /**
+     * Returns the names of the attributes of the node that have 
+     * been first defined for the node and not for its bases.
+     * @param node the node in question.
+     * @return an array of the names of the own attributes of the node.
+     */
+    getOwnAttributeNames(node: Core.Node): Common.Name[];
+    /**
+     * Collects the paths of all the children of the given node 
+     * that has some data as well and not just inherited.
+     * @param parent the node in question.
+     * @return an array of the absolute paths of the children.
+     */
+    getOwnChildrenPaths(parent: Core.Node): Common.Path[];
+    /**
+     * Collects the relative ids of all the children 
+     * of the given node that has some data and not just inherited. 
+     * n.b. Do not mutate the returned array!
+     * @param parent the node in question.
+     * @return an array of the relative ids.
+     */
+    getOwnChildrenRelids(parent: Core.Node): Common.RelId[];
+    /**
+     * Retrieves the list of constraint names defined specifically for the node.
+     * @param node the node in question.
+     * @return the array of names of constraints for the node.
+     */
+    getOwnConstraintNames(node: Core.Node): Common.Name[];
+    /**
+     * Returns the META rules specifically defined for the given node.
+     * @param node the node in question.
+     * @return an object that represent the META 
+     * rules that were defined specifically for the node.
+     */
+    getOwnJsonMeta(node: Core.Node): Common.MetaRules;
+    /**
+     * Returns the list of absolute paths of the members of the 
+     * given set of the given node that not simply inherited.
+     * @param node the node in question.
+     * @return an array of absolute path strings of the member nodes of 
+     * the set that has information on the node's inheritance level.
+     */
+    getOwnMemberPaths(node: Core.Node, name: Common.Name): Common.Path[];
+    /**
+     * Gathers the mixin nodes associated with the node that were defined specifically for the given node.
+     * @param node the node in question.
+     * @return the dictionary of the own mixin nodes keyed by their paths.
+     */
+    getOwnMixinNodes(node: Core.Node): Dictionary<Core.Node>;
+    /**
+     * Gathers the paths of the mixin nodes associated with the node 
+     * that were defined specifically for the given node.
+     * @param node the node in question.
+     * @return the paths of the own mixins in an array.
+     */
+    getOwnMixinPaths(node: Core.Node): Common.Path[];
+    /**
+     * Returns the list of the names of the 
+     * pointers that were defined specifically for the node.
+     * @param node the node in question.
+     * @return an array of names of pointers defined specifically for the node.
+     */
+    getOwnPointerNames(node: Core.Node): Common.Name[];
+    /**
+     * Returns the absolute path of the target 
+     * of the pointer specifically defined for the node.
+     * @param node the node in question.
+     * @param name the name of the pointer.
+     * @return the absolute path. 
+     * If the path is null, then it means that 'no-target' 
+     * was defined specifically for this node for the pointer. 
+     * If undefined it means that the node either inherits 
+     * the target of the pointer or there is no pointer defined at all.
+     */
+    getOwnPointerPath(node: Core.Node, name: Common.Name): Common.OutPath;
+    /**
+     * Returns the value of the registry entry defined for the given node.
+     * @param node the node in question.
+     * @param name the name of the registry entry.
+     * @return the value of the registry entry defined 
+     * specifically for the node. 
+     * If undefined then it means that there is no such 
+     * registry entry defined directly for the node, 
+     * meaning that it either inherits some value 
+     * or there is no such registry entry at all.
+     */
+    getOwnRegistry(node: Core.Node, name: Common.Name): Common.OutAttr;
+    /**
+     * Returns the names of the registry enrties of the node 
+     * that have been first defined for the node and not for its bases.
+     * @param node the node in question.
+     * @return the value of the registry entry defined 
+     * specifically for the node. 
+     * If undefined then it means that there is 
+     * no such registry entry defined directly for the node, 
+     * meaning that it either inherits some value 
+     * or there is no such registry entry at all.
+     */
+    getOwnRegistryNames(node: Core.Node): Common.Name[];
+    /**
+     * Get the value of the attribute entry 
+     * specifically set for the set at the node.
+     * @param node the node in question.
+     * @return the value of the attribute. 
+     * If it is undefined, than there is no such attribute at the set.
+     */
+    getOwnSetAttribute(node: Core.Node): Common.OutAttr[];
+    /**
+     * Return the names of the attribute 
+     * entries specifically set for the set at the node.
+     * @param node the node in question.
+     * @return the array of names of attribute entries defined in the set at the node.
+     */
+    getOwnSetAttributeNames(node: Core.Node): Common.Name[];
+    /**
+     * Returns the names of the sets created specifically at the node. 
+     * n.b. When adding a member to a set of a node, 
+     * the set is automatically created at the node.
+     * @param node the node in question.
+     * @return an array of set names that were specifically created at the node.
+     */
+    getOwnSetNames(node: Core.Node): Common.Name[];
+    /**
+     * Get the value of the registry entry specifically set for the set at the node.
+     * @param node the node in question.
+     * @param setName the name of the set.
+     * @param regName the name of the registry entry.
+     * @return the value of the registry. 
+     * If it is undefined, than there is no such registry at the set.
+     */
+    getOwnSetRegistry(node: Core.Node, setName: Common.Name, regName: Common.Name): Common.OutAttr[];
+    /**
+     * Return the names of the registry entries specifically set for the set at the node.
+     * @param node the node in question.
+     * @param setName the name of the set.
+     * @return the array of names of registry entries defined in the set at the node.
+     */
+    getOwnSetRegistryNames(node: Core.Node, setName: Common.Name): Common.Name[];
+    /**
+     * Returns the list of the META defined aspect 
+     * names of the node that were specifically defined for the node.
+     * @param node the node in question.
+     * @return the aspect names that are specifically defined for the node.
+     */
+    getOwnValidAspectNames(node: Core.Node): Common.Name[];
+    /**
+     * Returns the list of the META defined attribute 
+     * names of the node that were specifically defined for the node.
+     * @param node the node in question.
+     * @return the attribute names that are defined specifically for the node.
+     */
+    getOwnValidAttributeNames(node: Core.Node): Common.Name[];
+    /** 
+     * The parent paths are available from the node. 
+     * @param node the node in question.
+     * @return the parent of the node or NULL if it has no parent.
+     */
+    getParent(node: Core.Node): Core.Node | null;
+    /**  
+     * Returns the complete path of the node in the containment hierarchy. 
+     * @param node the node in question.
+     * @return a path string where each portion is a relative id and they are separated by '/'. 
+     * The path can be empty as well if the node in question is the root itself, 
+     * otherwise it should be a chain of relative ids from the root of the containment hierarchy.
+     */
+    getPath(node: Core.Node): Common.Path;
+    /**
+     * Return a JSON representation of the META rules regarding the given pointer/set of the given node.
+     * @param node the node in question.
+     * @return a detailed JSON structure that represents the META rules regarding the given pointer/set of the node.
+     */
+    getPointerMeta(node: Core.Node, name: Common.Name): Core.RelationRule;
+    /**
+     * Retrieves a list of the defined pointer names of the node.
+     * @param node the node in question.
+     * @return an array of the names of the pointers of the node.
+     */
+    getPointerNames(node: Core.Node): Common.Name[];
+    /**
+     * Retrieves the path of the target of the given pointer of the given node.
+     * @param node the node in question.
+     * @return the absolute path of the target node if there is a valid target. 
+     * It returns null if though the pointer is defined it does not have any valid target. 
+     * Finally, it return undefined if there is no pointer defined for the node under the given name.
+     */
+    getPointerPath(node: Core.Node, name: Common.Name): Common.OutPath;
+    /** 
+     * Get the assigned registry.
+     * Retrieves the value of the given registry entry of the given node. 
+     * @param node the node in question.
+     * @return the value of the registry entry of the node. 
+     * The value can be an object or any primitive type. 
+     * If the value is undefined that means the node do not have such attribute defined. 
+     * n.b. The retrieved registry value should not be modified as is - it should be copied first!!]
+     */
+    getRegistry(node: Core.Node, name: Common.Name): Common.OutAttr;
+    /** 
+     * Get the defined registry names.
+     * Returns the names of the defined registry entries of the node.
+     * @param node the node in question.
+     * @return an array of the names of the registry entries of the node.
+     */
+    getRegistryNames(node: Core.Node): string[];
+    /** 
+     * Get the relative id.
+     * Returns the parent-relative identifier of the node.
+     * @param node the node in question.
+     * @return the id string or return NULL and UNDEFINED if there is no such id for the node.
+     */
+    getRelid(node: Core.Node): Common.RelId | null | undefined;
+    /**
+     * Returns the root node of the containment tree that node is part of.
+     * @param node the node in question.
+     * @return the root of the containment hierarchy (it can be the node itself).
+     */
+    getRoot(node: Core.Node): Core.Node;
+    /**
+     * Get the value of the attribute entry in the set.
+     * @param node the node in question.
+     * @param setName the name of the set.
+     * @param attrName the name of the attribute entry.
+     * @return 
+     */
+    getSetAttribute(node: Core.Node, setName: Common.Name, attrName: Common.Name): Common.OutAttr;
+    /**
+     * Return the names of the attribute entries for the set.
+     * @param node the node in question.
+     * @param setName the name of the set.
+     * @return the array of names of attribute entries in the set.
+     */
+    getSetAttributeNames(node: Core.Node, setName: Common.Name): Common.Name[];
+    /**
+     * Returns the names of the sets of the node.
+     * @param node the node in question.
+     * @return an array of set names that the node has.
+     */
+    getSetNames(node: Core.Node): string[];
+    /**
+     * Get the value of the registry entry in the set.
+     * @param node the node in question.
+     * @param setName the name of the set.
+     * @param regName the name of the registry entry.
+     * @return the value of the registry. If it is undefined, than there is no such registry at the set.
+     */
+    getSetRegistry(node: Core.Node, setName: Common.Name, regName: Common.Name): Common.OutAttr;
+    /**
+     * Return the names of the registry entries for the set.
+     * @param node the node in question.
+     * @param setName the name of the set.
+     * @return the array of names of registry entries in the set.
+     */
+    getSetRegistryNames(node: Core.Node, setName: Common.Name): Common.Name[];
+
+    /**
+     * Returns the root of the inheritance chain (cannot be the node itself).
+     * @param node the node in question.
+     * @return the root of the inheritance chain of the node. 
+     * If returns null, that means the node in question is the root of the chain.
+     */
+    getTypeRoot(node: Core.Node): Core.Node | null;
+    /**
+     * Returns the list of the META defined aspect names of the node.
+     * @param node the node in question.
+     * @return all the aspect names that are defined among the META rules of the node.
+     */
+    getValidAspectNames(node: Core.Node): Common.Name[];
+    /**
+     * Returns the list of the META defined attribute names of the node.
+     * @param node the node in question.
+     * @return all the attribute names that are defined among the META rules of the node.
+     */
+    getValidAttributeNames(node: Core.Node): Common.Name[];
+    /**
+     * Retrieves the valid META nodes that can be base of a child of the node.
+     * @param node the node in question.
+     * @return a list of valid nodes that can be instantiated as a child of the node.
+     */
+    getValidChildrenMetaNodes(parameters: MetaNodeParameters): Core.Node[];
+    /**
+     * Returns the list of absolute path of the valid children types of the node.
+     * @param node the node in question.
+     * @return an array of absolute paths of the nodes 
+     * that was defined as valid children for the node.
+     */
+    getValidChildrenPaths(node: Core.Node): Common.Path[];
+    /**
+     * Returns the list of the META defined pointer names of the node.
+     * @param node the node in question.
+     * @return all the pointer names that are defined among the META rules of the node.
+     */
+    getValidPointerNames(node: Core.Node): Common.Name[];
+    /**
+     * Retrieves the valid META nodes that can be base of a member of the set of the node.
+     * @param parameters 
+     * @return a list of valid nodes that can be instantiated as a member of the set of the node.
+     */
+    getValidSetMetaNodes(parameters: MetaSetParameters): Core.Node[];
+    /**
+     * Returns the list of the META defined set names of the node.
+     * @param node the node in question.
+     * @return all the set names that are defined among the META rules of the node.
+     */
+    getValidSetNames(node: Core.Node): Common.Name[];
+    /**
+     * Checks if the node is abstract.
+     * @param node the node in question.
+     * @return true if the registry entry 'isAbstract' of the node if true hence the node is abstract.
+     */
+    isAbstract(node: Core.Node): boolean;
+    /** 
+     * Check is the node is a connection-like node.
+     * Connections are just nodes with two pointers named "src" and "dst". 
+     * @param node the node in question.
+     * @return true if both the 'src' and 'dst' pointer are defined as valid for the node.
+     */
+    isConnection(node: Core.Node): boolean;
+    /**
+     * Checks if the node in question has some actual data.
+     * @param node the node in question.
+     * @return true if the node is 'empty' meaning that it is not reserved by real data. 
+     *  false if the node is exists and have some meaningful value.
+     */
+    isEmpty(node: Core.Node): boolean;
+    /**
+     * Checks if the member is completely overridden in the set of the node.
+     * @param node the node in question.
+     * @param setName the name of the set.
+     * @param memberPath the absolute path to the set member.
+     * @return true if the member exists in the base of the set, 
+     * but was added to the given set as well, which means a complete override. 
+     * If the set does not exist or the member do not have 
+     * a 'base' member or just some property was overridden, the function returns false.
+     */
+    isFullyOverriddenMember(node: Core.Node, setName: Common.Name, memberPath: Common.Path): boolean;
+    /**
+     * Checks if there is a node with the given name in the nodes inheritance chain (excluding itself).
+     * @param node the node in question.
+     * @param name the name of the class node.
+     * @return  true if it finds an ancestor with the given name attribute.
+     */
+    isInstanceOf(node: Core.Node, name: Common.Name): boolean;
+    /**
+     * Returns true if the node in question is a library element.
+     * @param node the node in question.
+     * @return true if your node is a library element, false otherwise.
+     */
+    isLibraryElement(node: Core.Node): boolean;
+    /**
+     * Returns true if the node in question is a library root.
+     * @param node the node in question.
+     * @return true if your node is a library root 
+     * (even if it is embedded in other library), false otherwise.
+     */
+    isLibraryRoot(node: Core.Node): boolean;
+    /**
+     * Returns all membership information of the given node.
+     * @param node the node in question.
+     * @return a dictionary where every the key of every entry is an absolute path of a set owner node. 
+     * The value of each entry is an array with the set names in which the node can be found as a member.
+     */
+    isMemberOf(node: Core.Node): Core.DataObject;
+    /**
+     * Checks if the node is a META node.
+     * @param node the node in question.
+     * @return true if the node is a member of the 
+     * METAAspectSet of the ROOT node hence can be seen as a META node.
+     */
+    isMetaNode(node: Core.Node): boolean;
+    /**
+     * Checks if the given typeNode is really a base of the node.
+     * @param node the node in question.
+     * @param type a candidate base node.
+     * @return true if the type is in the inheritance chain of the node or false otherwise. 
+     * Every node is type of itself.
+     */
+    isTypeOf(node: Core.Node, type: Core.Node): boolean;
+    /**
+     * Checks if the given value is of the necessary type, according to the META rules.
+     * @param node the node in question.
+     * @param name the name of the attribute.
+     * @param value the value for the attribute.
+     * @return 
+     */
+    isValidAttributeValueOf(node: Core.Node, name: Common.Name, value: Common.InAttr): boolean;
+    /**
+     * Checks if according to the META rules the given node can be a child of the parent.
+     * @param node the node in question.
+     * @return true if according to the META rules the node can be a child of the parent. 
+     * The check does not cover multiplicity 
+     * (so if the parent can only have two children and it already has them, 
+     * this function will still returns true).
+     */
+    isValidChildOf(node: Core.Node, parent: Core.Node): boolean;
+    /**
+     * Checks if base can be the new base of node.
+     * @param node the node in question.
+     * @param base the new base node.
+     * @return true if the supplied base is a valid base for the node.
+     */
+    isValidNewBase(node: Core.Node, base: Core.Node | null | undefined): boolean;
+    /**
+     * Checks if parent can be the new parent of node.
+     * @param node the node in question.
+     * @param parent the new parent.
+     * @return true if the supplied parent is a valid parent for the node.
+     */
+    isValidNewParent(node: Core.Node, parent: Core.Node): boolean;
+    /**
+     * Returns the list of the META defined pointers of the node.
+     * @param node the node in question.
+     * @param source the source node to test.
+     * @return  true if according to the META rules, 
+     * the given node is a valid target of the given pointer of the source.
+     */
+    isValidTargetOf(node: Core.Node, source: Core.Node, name: Common.Name): boolean;
+    /**
+     * From the given starting node, it loads the path 
+     * given as a series of relative ids (separated by '/') and returns the node it finds at the ends of the path. 
+     * If there is no node, the function will return null.
+     * @param startNode the starting node of our search.
+     * @param relativePath the relative path - built by relative ids - of the node in question.
+     */
+    loadByPath: {
+        (startNode: Core.Node, relativePath: Common.Path, callback: ErrorOnlyCallback): void;
+        (startNode: Core.Node, relativePath: Common.Path): Promise<void>;
+    };
+    /**
+     * Loads the child of the given parent pointed by the relative id. 
+     * Behind the scenes, it means that it actually loads the 
+     * data pointed by a hash stored inside the parent under 
+     * the given id and wraps it in a node object which will 
+     * be connected to the parent as a child in the containment hierarchy. 
+     * If there is no such relative id reserved, the call will return with null.
+     * @param parent the container node in question.
+     * @param relativeId the relative id of the child in question.
+     */
+    loadChild: {
+        (parent: Core.Node, relativeId: string, callback: ErrorOnlyCallback): void;
+        (parent: Core.Node, relativeId: string): Promise<void>;
+    };
+    /**
+     * Loads all the children of the given parent. 
+     * As it first checks the already reserved relative ids of the parent, 
+     * it only loads the already existing children (so no on-demand empty node creation).
+     * @param parent the container node in question.
+     */
+    loadChildren: {
+        (parent: Core.Node, callback: ErrorOnlyCallback): void;
+        (parent: Core.Node): Promise<void>;
+    }
+    /**
+     * Loads all the source nodes that has such a pointer and its target is the given node.
+     * @param target the container node in question.
+     * @param pointerName 
+     * @return the relative id of the child in question.
+     */
+    loadCollection: {
+        (target: Core.Node, pointerName: Common.Name, callback: ErrorOnlyCallback): void;
+        (target: Core.Node, pointerName: Common.Name): Promise<void>;
+    }
+    /**
+     * Loads all the instances of the given node.
+     * @param node the node in question.
+     */
+    loadInstances: {
+        (node: Core.Node, callback: ErrorOnlyCallback): void;
+        (node: Core.Node): Promise<void>;
+    }
+    /**
+     * Loads all the children of the given parent that has some data and not just inherited. 
+     * As it first checks the already reserved relative ids of the parent, 
+     * it only loads the already existing children (so no on-demand empty node creation).
+     * @param parent the container node in question.
+     */
+    loadOwnChildren: {
+        (parent: Core.Node, callback: ErrorOnlyCallback): void;
+        (parent: Core.Node): Promise<void>;
+    }
+    /**
+     * Loads a complete sub-tree of the containment hierarchy starting from the given node, 
+     * but load only those children that has some additional data and not purely inherited.
+     * @param node the node in question.
+     */
+    loadOwnSubTree: {
+        (node: Core.Node, callback: ErrorOnlyCallback): void;
+        (node: Core.Node): Promise<void>;
+    }
+    /**
+     * Loads the target of the given pointer of the given node. 
+     * In the callback the node can have three values: 
+     * if the node is valid, then it is the defined target of a valid pointer, 
+     * if the returned value is null, then it means that the pointer is defined, but has no real target, 
+     * finally if the returned value is undefined then there is no such pointer defined for the given node.
+     * @param source the source node in question.
+     * @param pointerName the relative id of the child in question.
+     */
+    loadPointer: {
+        (source: Core.Node, pointerName: string, callback: ResultCallback<Core.DataObject>): void;
+        (source: Core.Node, pointerName: string): Promise<Core.DataObject>;
+    }
+    /**
+     * Loads the data object with the given hash and makes it a root of a containment hierarchy.
+     * @param node the node in question.
+     * @return 
+     */
+    loadRoot: {
+        (metadataHash: Common.MetadataHash, callback: ResultCallback<Core.DataObject>): void;
+        (metadataHash: Common.MetadataHash): Promise<Core.DataObject>;
+    }
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    loadSubTree: {
+        (node: Core.Node, callback: ResultCallback<Core.DataObject>): void;
+        (node: Core.Node): Promise<Core.DataObject>;
+    }
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    loadTree: {
+        (rootHash: Common.MetadataHash, callback: ResultCallback<Core.DataObject>): void;
+        (rootHash: Common.MetadataHash): Promise<Core.DataObject>;
+    }
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    moveNode(node: Core.Node, parent: Core.Node): Core.Node | Error;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    persist(node: Core.Node): Core.GmePersisted;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    removeLibrary(node: Core.Node, name: Common.Name): void;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    renameLibrary(node: Core.Node, oldName: string, newName: string): void;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    setAspectMetaTarget(node: Core.Node, name: Common.Name, target: Core.Node): undefined | Error;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    setAttribute(node: Core.Node, name: Common.Name, value: Common.InAttr): undefined | Error;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    setAttributeMeta(node: Core.Node, name: Common.Name, rule: MetaRule): undefined | Error;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    setBase(node: Core.Node, base: Core.Node): undefined | Error;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    setChildMeta(node: Core.Node, child: Core.Node, min?: number, max?: number): undefined | Error;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    setChildrenMetaLimits(node: Core.Node, min?: number, max?: number): undefined | Error;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    setConstraint(node: Core.Node, name: Common.Name, constraint: Core.Constraint): undefined | Error;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    setGuid: {
+        (node: Core.Node, guid: Core.GUID, callback: ResultCallback<Core.DataObject>): undefined | Error;
+        (node: Core.Node, guid: Core.GUID): Promise<Core.DataObject>;
+    }
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    setMemberAttribute: {
+        (node: Core.Node, setName: string, memberPath: string,
+            SVGPathSegLinetoHorizontalAbsme: string,
+            value?: Common.InAttr): undefined | Error;
+    }
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    setMemberRegistry(node: Core.Node, setName: string, memberPath: string, regName: string,
+        value?: Common.InAttr): undefined | Error;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    setPointer(node: Core.Node, name: Common.Name, target: Core.Node | null): undefined | Error;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    setPointerMetaLimits(node: Core.Node, memberPath: string,
+        min?: number, max?: number): undefined | Error;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    setPointerMetaTarget(node: Core.Node, name: Common.Name, target: Core.Node, min?: number, max?: number): undefined | Error;
+    /** 
+     * TODO
+     * Get the assigned registry 
+     * @param node the node in question.
+     * @return 
+     */
+    setRegistry(node: Core.Node, name: Common.Name, value: Common.InAttr): undefined | Error;
+    /**
+     * TODO
+     * the visitation function will be called for
+     * every node in the sub-tree, the second parameter of the function
+     * is a callback that should be called to
+     * note to the traversal function that the visitation for a given node is finished.
+     *  @param node the node in question.
+    * @return 
+     */
+    traverse: {
+        // takes a callback & returning *no* promise
+        (node: Core.Node,
+            options: TraversalOptions,
+            visitFn: (node: Core.Node, finished: Common.VoidFn) => void,
+            callback: ResultCallback<Core.DataObject>)
+            : void;
+        // takes *no* callback & returns a promise
+        (node: Core.Node,
+            options: TraversalOptions,
+            visitFn: (node: Core.Node, finished: Common.VoidFn) => void)
+            : Promise<void>;
+    }
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    tryToConcatChanges(mine: Core.DataObject, theirs: Core.DataObject): Core.DataObject;
+    /**
+     * TODO
+     * @param node the node in question.
+     * @return 
+     */
+    updateLibrary: {
+        (node: Core.Node, name: Common.Name, libraryRootHash: Common.MetadataHash,
+            libraryInfo: LibraryInfo, callback: ResultCallback<Core.DataObject>): void;
+        (node: Core.Node, name: Common.Name, libraryRootHash: Common.MetadataHash,
+            libraryInfo: LibraryInfo): Promise<Core.DataObject>;
+    }
+}
+
+
+
+
+export interface ProjectInterface {
 
 }
+
+
+export type ThenCallback = VoidCallback;
+export type CatchCallback = ErrorOnlyCallback;
+
+export interface Promisable {
+    then(callback: ThenCallback): Promisable;
+    catch(callback: CatchCallback): Promisable;
+}
+
+/**
+The base plugin object from which all plugins should inherit.
+*/
+export interface Base {
+
+    activeNode: Core.Node;
+    activeSelection: Core.Node[];
+    blobClient: Blobs.BlobClient;
+    core: Core;
+    gmeConfig: Config.GmeConfig;
+    isConfigured: boolean;
+    logger: Global.GmeLogger;
+    /**
+     * The resolved META nodes based on the active namespace. Index by the fully qualified meta node names
+     * with the namespace stripped off at the start.
+     *
+     * For example, if a project has a library A with a library B. If the project and the libraries all have
+     * two meta nodes named a and b. Depending on the namespace the META will have the following keys:
+     *
+     * 1) namespace = '' -> ['a', 'b', 'A.a', 'A.b', 'A.B.a', 'A.B.b']
+     * 2) namespace = 'A' -> ['a', 'b', 'B.a', 'B.b']
+     * 3) namespace = 'A.B' -> ['a', 'b']
+     *
+     * (n.b. 'a' and 'b' in example 3) are pointing to the meta nodes defined in A.B.)
+     */
+    META: any;
+    /**
+     * The namespace the META nodes are coming from (set by invoker).
+     * The default is the full meta, i.e. the empty string namespace.
+     * For example, if a project has a library A with a library B. The possible namespaces are:
+     * '', 'A' and 'A.B'.
+     */
+    namespace: string;
+    notificationHandlers: any[];
+    pluginMetadata: Common.Metadata;
+    project: ProjectInterface;
+    result: Result;
+    rootNode: Core.Node;
+
+    addCommitToResult(status: string): void;
+    baseIsMeta(node: any): boolean;
+
+    configure(config: Config.GmeConfig): void;
+    createMessage(node: any, message: string, serverity: string): void;
+    /**
+     * Gets the configuration structure for the plugin.
+     * The ConfigurationStructure defines the configuration for the plugin
+     * and will be used to populate the GUI when invoking the plugin from webGME.
+     */
+    getConfigStructure(): Config.ConfigItem[];
+    getCurrentConfig(): Config.GmeConfig;
+    getDefaultConfig(): Config.GmeConfig;
+    /**
+     * Gets the description of the plugin.
+     */
+    getDescription(): string;
+    getMetadata(): any;
+    getMetaType(node: any): any;
+    /**
+     * Gets the name of the plugin.
+     */
+    getName(): string;
+    /**
+     * Gets the semantic version (semver.org) of the plugin.
+     */
+    getVersion(): string;
+    initialize(logger: Global.GmeLogger, blobClient: Blobs.BlobClient, gmeConfig: Config.GmeConfig): void;
+    isInvalidActiveNode(pluginId: any): any;
+    isMetaTypeOf(node: any, metaNode: any): boolean;
+    /**
+      Main function for the plugin to execute.
+      Notes:
+      - Always log with the provided logger.[error,warning,info,debug].
+      - Do NOT put any user interaction logic UI, etc. inside this method.
+      - handler always has to be called even if error happened.
+ 
+      When this runs the core api is used to extract the essential
+      meta-model and the model-instance, these are then written to the mega-model.
+      The mega-model contains all of the models used to describe the target system.
+ 
+      https://github.com/ptaoussanis/sente
+      and https://github.com/cognitect/transit-format
+      will be used to connect to the
+      graph database (immortals) where the mega-model is stored.
+ 
+      @param {function(string, plugin.PluginResult)} handler - the result handler
+     */
+    main(callback: ResultCallback<any>): void;
+    save(message?: string): Promisable; // returns a promise?
+    sendNotification: {
+        (message: string, callback: ResultCallback<Core.DataObject>): void;
+        (message: string): Promise<Core.DataObject>;
+    }
+    setCurrentConfig(newConfig: Config.GmeConfig): void;
+    updateMeta(generatedMeta: any): void;
+    updateSuccess(value: boolean, message: TemplateStringsArray): void;
+}
+
 
 /**
  * Each Plugin has a configuration specified via a metadata.json file.
@@ -1493,7 +2721,7 @@ declare namespace Config {
         /** Client related settings. */
         client: LogOptions;
         /** Client related settings. */
-        core: Core.Core;
+        core: Core;
         /** Enables debug mode. */
         public debug: boolean;
         /** Executor related settings. */
@@ -1507,7 +2735,7 @@ declare namespace Config {
             allowServerExecution: boolean
         };
         /** Additional paths to for requirejs. */
-        requirejsPaths: Common.Dictionary<string>;
+        requirejsPaths: Dictionary<string>;
         /** REST related settings. */
         rest: any;
         /** Seed related settings. */
@@ -1545,6 +2773,206 @@ declare namespace Config {
 
 }
 
+declare namespace Storage {
+    export interface ErrorOnlyCallback {
+        (err: Error | null): void;
+    }
+    export interface CommitHashCallback {
+        (err: Error | null, result: CommitHash): void;
+    }
+    export type CommitHash = string;
+
+
+    export interface CommitObject {
+        /**
+         * Hash of the commit object, a.k.a commitHash.
+         */
+        _id: Storage.CommitHash;
+        /**
+         * Hash of the associated root object, a.k.a. rootHash.
+         */
+        root: Core.ObjectHash;
+        /**
+         * Commits from where this commit evolved.
+         */
+        parents: Storage.CommitHash[];
+        /**
+         * When the commit object was created (new Date()).getTime().
+         */
+        time: number;
+        /**
+         * Commit message.
+         */
+        message: string;
+        /**
+         * Who performed the update.
+         */
+        updater: string[];
+        /**
+         * A constant 'commit'.
+         */
+        type: string;
+    }
+
+    export interface CommitObjectCallback {
+        (err: Error | null, result: CommitObject): void;
+    }
+
+    export interface CommitResult {
+        /** The commitHash for the commit. */
+        hash: CommitHash;
+        status: "SYNCED" | "FORKED" | "CANCELED" | undefined;
+    }
+    export interface CommitResultCallback {
+        (err: Error | null, result: CommitResult): void;
+    }
+}
+
+
+export type ProjectStart = string | Storage.CommitHash | string[] | Storage.CommitHash[];
+export type LoadObjectCallback = Storage.CommitObjectCallback;
+
+export class Project {
+    /**
+     * Unique ID of project, built up by the ownerId and projectName.
+     */
+    projectId: string;
+
+    /**
+     * Creates a new branch with head pointing to the provided commit hash.
+     */
+    createBranch: {
+        /** Name of branch to create. */
+        (branchName: string, newHash: Storage.CommitHash, callback: Storage.CommitResultCallback): void;
+        (branchName: string, newHash: Storage.CommitHash, ): Promise<Storage.CommitResult>;
+    }
+    /**
+     * Creates a new tag pointing to the provided commit hash.
+     */
+    createTag: {
+        (tagName: string, commitHash: Storage.CommitHash, callback: Storage.ErrorOnlyCallback): void;
+        (tagName: string, commitHash: Storage.CommitHash): Promise<Storage.ErrorOnlyCallback>;
+    }
+    /**
+    * Deletes the given branch.
+    */
+    deleteBranch: {
+        /** Name of branch to delete. */
+        (branchName: string, oldHash: Storage.CommitHash, callback: Storage.CommitResultCallback): void;
+        (branchName: string, oldHash: Storage.CommitHash, ): Promise<Storage.CommitResult>;
+    }
+    /**
+     * Deletes the given tag.
+     */
+    deleteTag: {
+        /** Name of tag to delete. */
+        (tagName: string, callback: Storage.ErrorOnlyCallback): void;
+        (tagname: string): Promise<void>;
+    }
+    /**
+     * Retrieves all branches and their current heads within the project.
+     */
+    getBranches: {
+        /** On success the callback will run with Object.module:Storage~CommitHash result. */
+        (callback: Storage.CommitHashCallback): void;
+        /** On success the promise will be resolved with Object.module:Storage~CommitHash> result. */
+        (): Promise<Storage.CommitHash>;
+    }
+    /**
+     * Retrieves the commit hash for the head of the branch.
+     */
+    getBranchHash: {
+        (branchName: string, callback: Storage.CommitHashCallback): void;
+        (branchName: string): Promise<Storage.CommitHash>;
+    }
+    /**
+     * Retrieves and array of the latest 
+     * (sorted by timestamp) commits for the project. 
+     * If timestamp is given it will get number 
+     * of commits strictly before before. 
+     * If commit hash is specified that 
+     * commit will be included too. 
+     * n.b. due to slight time differences on different machines, 
+     * ancestors may be returned before their descendants. 
+     * Unless looking for 'headless' commits 
+     * 'getHistory' is the preferred method.
+     */
+    getCommits: {
+        (before: number | Storage.CommitHash, number: number, callback: Storage.CommitObjectCallback): void;
+        (before: number | Storage.CommitHash, number: number): Promise<Storage.CommitObject>;
+    }
+    /**
+     * Retrieves the Class ancestor of two commits. 
+     * If no ancestor exists it will result in an error.
+     */
+    getClassAncestorCommit: {
+        (commitA: Storage.CommitHash, commitB: Storage.CommitHash, callback: Storage.CommitHashCallback): void;
+        (commitA: Storage.CommitHash, commitB: Storage.CommitHash): Promise<Storage.CommitHash>;
+    }
+    /**
+     * Retrieves an array of commits starting from a branch(es) and/or commitHash(es). 
+     * The result is ordered by the rules (applied in order) 
+     *  1. Descendants are always returned before their ancestors.
+     *  2. By their timestamp.
+     */
+    getHistory: {
+        (start: ProjectStart, number: number, callback: Storage.CommitObjectCallback): void;
+        (start: ProjectStart, number: number): Promise<Storage.CommitObject>;
+    }
+    /**
+     * Retrieves all tags and their commits hashes within the project.
+     */
+    getTags: {
+        (callback: Storage.CommitHashCallback): void;
+        (): Promise<Storage.CommitHash>;
+    }
+
+    loadObject: {
+        /** Hash of object to load. */
+        (key: string, callback: Storage.CommitObjectCallback): void;
+        (key: string): Promise<Storage.CommitObject>;
+    }
+    /** 
+     * Collects the objects from the server and pre-loads 
+     * them into the cache making the load of multiple objects faster.
+     * 
+     * @param rootKey Hash of the object at the entry point of the paths.
+     * @param paths List of paths that needs to be pre-loaded.
+     */
+    loadPaths: {
+        (rootKey: string, paths: string[], callback: Storage.ErrorOnlyCallback): void;
+        (rootKey: string, paths: string[]): Promise<Storage.ErrorOnlyCallback>;
+    }
+
+    /**
+     * Makes a commit to data base. 
+     * Based on the root hash and commit message a 
+     * new module:Storage.CommitObject (with returned hash) 
+     * is generated and insert together with the 
+     * core objects to the database on the server.
+     */
+    makeCommit: {
+        (branchName: string, parents: Storage.CommitHash[],
+            rootHash: Core.ObjectHash, coreObjects: Core.DataObject,
+            msg: string, callback: Storage.CommitResultCallback): void;
+        (branchName: string, parents: Storage.CommitHash[],
+            rootHash: Core.ObjectHash, coreObjects: Core.DataObject,
+            msg: string): Promise<Storage.CommitResult>;
+    }
+    /**
+     * Updates the head of the branch.
+     */
+    setBranchHash: {
+        (branchName: string, newHash: Storage.CommitHash,
+            oldHash: Storage.CommitHash,
+            callback: Storage.CommitResultCallback): void;
+        (branchName: string, newHash: Storage.CommitHash,
+            oldHash: Storage.CommitHash): Promise<Storage.CommitResult>;
+    }
+
+
+}
+
 /**
 Things in this module are deprecated.
 This was a serialization supported in version 1.
@@ -1570,7 +2998,7 @@ declare module "webgme/v1" {
         containment: JsonContainment; // guid tree of hashes
         bases: any; //
         nodes: any;
-        relids: any;
+        relids: Common.RelId[];
         metaSheets: any;
     }
 }
