@@ -6,12 +6,7 @@
   "typings": "index.d.ts",
   "files": [
     "index.d.ts",
-    "text.d.ts",
-    "webgme-blob.d.ts",
-    "webgme-util.d.ts",
-    "webgme-core.d.ts",
-    "webgme-config.d.ts",
-    "webgme-v1.d.ts"
+    "text.d.ts"
   ],
   "keywords": [
     "typescript",
@@ -22,12 +17,10 @@
     "test": "test"
   },
   "dependencies": {},
-  "devDependencies": {
-    "typings": "~1.4.0"
-  },
+  "devDependencies": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/phreed/typescript-typings.git"
+    "url": "git+https://github.com/phreed/ts-typings.git"
   },
   "author": {
     "name": "Fred Eisele",
