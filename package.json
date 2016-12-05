@@ -1,6 +1,6 @@
 {
   "name": "@types/webgme",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "A set of TypeScript definitions for webgme",
   "main": "",
   "typings": "index.d.ts",
