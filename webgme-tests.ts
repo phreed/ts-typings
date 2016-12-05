@@ -1,6 +1,7 @@
 
 /// <reference types="node" />
 /// <reference types="bluebird" />
+/// <reference path="./index.d.ts" />
 
 /**
  * In actual usage the MetaDataStr would most likely
@@ -33,10 +34,10 @@ import * as Common from "webgme/common";
  * self is an instance of the PluginBase class.
  */
 let self = new PluginBase();
-let node = new Common.Node();
-let connNode = new Common.Node();
-let sourceNode = new Common.Node();
-let destinationNode = new Common.Node();
+let node = new Core.Node();
+let connNode = new Core.Node();
+let sourceNode = new Core.Node();
+let destinationNode = new Core.Node();
 
 /**
  * These tests are derived from...
@@ -92,7 +93,7 @@ function test_core_inheritance() {
  * https://github.com/webgme/webgme/wiki/GME-Core-API#the-traverse-method
  */
 function test_core_containment_traversal() {
-    function atNode(node: Common.Node, done: Common.VoidFn) {
+    function atNode(node: Core.Node, done: Common.VoidFn) {
         let metaNode = self.core.getBaseType(node);
         let nodeName = self.core.getAttribute(node, 'name');
         // Library-roots do not have a meta-type either.
@@ -102,7 +103,7 @@ function test_core_containment_traversal() {
         done();
     }
     // Traversal from the root-node (itself will be excluded since it doesn't have a meta-type).
-    self.core.traverse(self.rootNode, { excludeRoot: true }, atNode, (err): void => {
+    self.core.traverse(self.rootNode, { excludeRoot: true }, atNode, (err: Error): void => {
         if (err) {
             // Something went wrong!
             // Handle the error and return.
@@ -118,7 +119,7 @@ function test_core_containment_methods() {
     let childrenPaths = self.core.getChildrenPaths(node);
     let parentNode = self.core.getParent(node);
     let baseNode = self.core.getBase(node);
-    let rootNode = self.core.getRoot;
+    let rootNode = self.core.getRoot(node);
 
     // Loading the children however requires data that is not (necessarily) available
     self.core.loadChildren(node, (err, children) => {
@@ -142,16 +143,18 @@ function test_core_containment_methods() {
     var newNode = self.core.createNode(params);
 
     // Copy a node.
+    if (parentNode === null) return;
     var copiedNode = self.core.copyNode(node, parentNode);
 
     // Delete a node.
+    if (newNode instanceof Error) return;
     self.core.deleteNode(newNode);
 
     // Loading nodes by paths
     // N.B. the path provided is relative the node in the first argument,
     // here the root-node is passed to the path is the absolute (i.e. same
     // as self.core.getPath(someNode);)
-    self.core.loadByPath(rootNode, '/1', (err, node) => {
+    self.core.loadByPath(rootNode, '/1', (err: Error, node: Core.Node) => {
         if (err) {
             // Handle error
         }
@@ -290,8 +293,8 @@ function test_client_using_a_blob() {
             return { stateMachine: { name: "dm", initialState: null, finalStates: [], states: [] } };
         }
 
-        public main(mainHandler: Core.ResultCallback): void {
-            let artifact: Core.Artifact;
+        public main(mainHandler: Common.ResultCallback<any>): void {
+            let artifact: Classes.Artifact;
 
             Promise
                 .try(() => {
@@ -345,8 +348,8 @@ function test_core_containment_traversal_complete() {
     const NULL_OBJECT = "_OBJECT"
     const NULL_GUID = "00000000-0000-0000-0000-000000000000";
 
-    function getEdgesModel(sponsor: PluginBase, core: Core.Core,
-        _rootNode: Common.Node, _metaNode: Common.Node): Core.Dictionary {
+    function getEdgesModel(sponsor: PluginBase, core: Classes.Core,
+        _rootNode: Core.Node, _metaNode: Core.Node): Common.Dictionary<any> {
 
         let fcoName = core.getAttribute(core.getFCO(sponsor.rootNode), "name");
         let languageName = core.getAttribute(sponsor.rootNode, "name");
@@ -373,12 +376,12 @@ function test_core_containment_traversal_complete() {
                 "children": {},
                 "guid": NULL_GUID
             };
-        let nodeGuidMap: Core.Dictionary = {
+        let nodeGuidMap: Common.Dictionary<any> = {
             [NULL_GUID]: rootEntry
         };
 
         sponsor.logger.info("A dictionary: look up nodes based on their path name.");
-        let path2entry: Core.Dictionary = { [BLANK]: rootEntry };
+        let path2entry: Common.Dictionary<any> = { [BLANK]: rootEntry };
 
         /**
          * A filter mechanism to effectively eliminate containment branches.
@@ -393,7 +396,7 @@ function test_core_containment_traversal_complete() {
          * The traverse function follows the containment tree.
          * @type {[type]}
          */
-        let visitFn = (node: Node, done: Common.VoidFn): void => {
+        let visitFn = (node: Core.Node, done: Common.VoidFn): void => {
             try {
                 let core = sponsor.core;
                 let nodePath: string = core.getPath(node);
@@ -467,7 +470,8 @@ function test_core_containment_traversal_complete() {
                 // set the parent to know its child the root node has no parent
                 // if a non-pruned item has a pruned parent then bring it in.
                 if (node !== sponsor.rootNode) {
-                    let parent: Common.Node = core.getParent(node);
+                    let parent: Core.Node | null = core.getParent(node);
+                    if (parent === null) return;
                     let parentPath: string = core.getPath(parent);
 
                     let parentData = path2entry[parentPath];
@@ -503,7 +507,7 @@ function test_core_containment_traversal_complete() {
                             .try(() => {
                                 return core.loadByPath(sponsor.rootNode, targetPath);
                             })
-                            .then((targetNode: Node) => {
+                            .then((targetNode: Core.Node) => {
                                 let targetGuid = core.getGuid(targetNode);
                                 if (ptrName === "base") {
 
@@ -550,7 +554,7 @@ function test_core_containment_traversal_complete() {
                                 .try(() => {
                                     return core.loadByPath(sponsor.rootNode, targetPath);
                                 })
-                                .then((targetNode: Node) => {
+                                .then((targetNode: Core.Node) => {
                                     let targetGuid = core.getGuid(targetNode);
                                     let sets: DictionaryAny = sourceEntry.sets;
                                     let targetMetaNode = core.getBaseType(targetNode);
