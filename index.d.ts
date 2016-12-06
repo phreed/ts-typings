@@ -21,62 +21,65 @@ declare module "blob/BlobMetadata" {
     }
 }
 
-declare module "plugin/PluginBase" {
-    export = GmePlugin.PluginBase;
-}
+
 
 declare module "plugin/PluginConfig" {
-    export = Config.PluginConfig;
+    export = GmeConfig.PluginConfig;
 }
 
 declare module "webgme/config/config.default" {
-    export = Config.config;
+    export = GmeConfig.config;
 }
 
 declare module "webgme/common" {
-    export = Common;
+    export = GmeCommon;
 }
 
 declare module "common/util/canon" {
-    export = Util.CANON;
+    export = GmeUtil.CANON;
 }
 
 declare module "common/util/assert" {
-    export = Util.ASSERT;
+    export = GmeUtil.ASSERT;
 }
 
 declare module "js/PanelBase/PanelBase" {
-    export = Panel.PanelBase;
+    export = GmePanel.PanelBase;
 }
 
 declare module "js/PanelBase/PanelBaseWithHeader" {
-    export = Panel.PanelBaseWithHeader;
+    export = GmePanel.PanelBaseWithHeader;
 }
 
 declare module "js/PanelManager/IActivePanel" {
-    export = Panel.IActivePanel;
+    export = GmePanel.IActivePanel;
 }
 
 declare module "js/NodePropertyNames" {
-    var names: GME.NodePropertyNames;
+    var names: Gme.NodePropertyNames;
     export = names;
 }
 
 declare module "js/RegistryKeys" {
-    const keys: GME.RegistryKeys;
+    const keys: Gme.RegistryKeys;
     export = keys;
 }
 
 declare module "js/Utils/GMEConcepts" {
-    export = GME.Concepts;
+    export = Gme.Concepts;
 }
 
 declare module "js/Utils/PreferencesHelper" {
-    const helper: GME.PreferenceHelper;
+    const helper: Gme.PreferenceHelper;
     export = helper;
 }
 
-declare namespace GME {
+declare module "plugin/PluginBase" {
+    // const pb: GmePlugin.PluginBase;
+    export = GmePlugin.PluginBase;
+}
+
+declare namespace Gme {
 
     interface NodePropertyNames {
         Attributes: {
@@ -138,15 +141,15 @@ declare namespace GME {
         position: number;
         source: string;
         target: string;
-        pointers: Common.Dictionary<Common.Pointer>;
+        pointers: GmeCommon.Dictionary<GmeCommon.Pointer>;
         srcPos: Pos2D;
         dstPos: Pos2D;
         srcObjId: string;
         dstObjId: string;
 
         control?: VisualizerControl;
-        metaInfo?: Common.Dictionary<string>;
-        preferencesHelper?: GME.PreferenceHelper;
+        metaInfo?: GmeCommon.Dictionary<string>;
+        preferencesHelper?: Gme.PreferenceHelper;
         srcSubCompId?: string;
         dstSubCompId?: string;
         reconnectable?: boolean;
@@ -250,16 +253,16 @@ declare namespace GME {
         /**
          * Connecting to the webGME database.
          */
-        connectToDatabase(callback: Common.ResultCallback<Connection>): void;
+        connectToDatabase(callback: GmeCommon.ResultCallback<Connection>): void;
         /**
          * asIndexed true to get an object indexed by project ids.
          */
-        getProjectsAndBranches(asIndexed: boolean, callback: Common.ResultCallback<ProjectResult>): void;
+        getProjectsAndBranches(asIndexed: boolean, callback: GmeCommon.ResultCallback<ProjectResult>): void;
         /**
          * The client opens a project and a branch and 
          * from there we can start registering for node events.
          */
-        selectProject(projectId: string, branchName: string, callback: Common.ResultCallback<any>): void;
+        selectProject(projectId: string, branchName: string, callback: GmeCommon.ResultCallback<any>): void;
         /**
          * Add a user associated with the pattern and an event-handler.
          * The eventHandler is invoked whenever there are changes 
@@ -275,7 +278,7 @@ declare namespace GME {
         /**
          * Initiate the initial load of nodes matching the patterns.
          */
-        updateTerritory(userId: string, patterns: Common.Dictionary<TerritoryPattern>): void;
+        updateTerritory(userId: string, patterns: GmeCommon.Dictionary<TerritoryPattern>): void;
         /**
          * When we are no longer interested in the the 
          * nodes for the userId so we remove the user. 
@@ -287,7 +290,7 @@ declare namespace GME {
         /**
          * Typically called from within the event-handler.
          */
-        getNode(nodeId: Common.NodeId): Core.Node;
+        getNode(nodeId: GmeCommon.NodeId): Core.Node;
         /**
          * Get an array of all the META nodes as nodeObjs.
          * Since these may change it is a good idea to invoke 
@@ -295,100 +298,100 @@ declare namespace GME {
          */
         getAllMetaNodes(): Core.Node[];
 
-        setAttributes(nodeId: Common.NodeId, name: string, newName: string, message: string): void;
+        setAttributes(nodeId: GmeCommon.NodeId, name: string, newName: string, message: string): void;
         createChild(params: ChildCreationParams, message: string): void;
-        delMoreNodes(nodeIds: Common.NodeId[], message: string): void;
+        delMoreNodes(nodeIds: GmeCommon.NodeId[], message: string): void;
 
         /**
          * Transactions
          */
         startTransaction(message: string): void;
-        setRegistry(nodeId: Common.NodeId, attr: string, property: any, message: string): void;
-        completeTransaction(message: string, callback: Common.ResultCallback<TransactionResult>): void;
+        setRegistry(nodeId: GmeCommon.NodeId, attr: string, property: any, message: string): void;
+        completeTransaction(message: string, callback: GmeCommon.ResultCallback<TransactionResult>): void;
 
         /**
          * make a new pointer object.
          * The source and target should already be loaded.
          */
-        makePointer(sourceNodeId: Common.NodeId, pointerName: string, targetNodeId: Common.NodeId, message: string): Common.Pointer;
+        makePointer(sourceNodeId: GmeCommon.NodeId, pointerName: string, targetNodeId: GmeCommon.NodeId, message: string): GmeCommon.Pointer;
         /**
         * assign a node to a set
         * The source and target should already be loaded.
         */
-        addMember(sourceNodeId: Common.NodeId, targetNodeId: Common.NodeId, setName: string, message: string): Common.Pointer;
+        addMember(sourceNodeId: GmeCommon.NodeId, targetNodeId: GmeCommon.NodeId, setName: string, message: string): GmeCommon.Pointer;
 
         getAllMetaNodes(): Core.Node[];
         setAttributeSchema(nodeId: string, name: string, schema: AttributeSchema): void;
-        updateValidChildrenItem(nodeId: Common.NodeId, type: ChildType): void
+        updateValidChildrenItem(nodeId: GmeCommon.NodeId, type: ChildType): void
 
-        setPointerMeta(metaNodeId: Common.NodeId, newPointerName: string, meta: GME.PointerMeta): void;
+        setPointerMeta(metaNodeId: GmeCommon.NodeId, newPointerName: string, meta: Gme.PointerMeta): void;
 
     }
 
 }
 declare const WebGMEGlobal: Global.WebGmeGlobal;
 
-declare namespace Classes {
+declare namespace GmeClasses {
 
     export type ArtifactCallback = (err: Error, result: Artifact) => void;
 
     export interface Artifact {
-        name: Common.Name;
+        name: GmeCommon.Name;
         blobClient: Blobs.BlobClient;
         descriptor: Blobs.BlobMetadata;
 
-        constructor(name: Common.Name, blobClient: Blobs.BlobClient, descriptor: Blobs.BlobMetadata): void;
+        constructor(name: GmeCommon.Name, blobClient: Blobs.BlobClient, descriptor: Blobs.BlobMetadata): void;
 
         /** Adds content to the artifact as a file. */
         addFile: {
-            (name: Common.Name, content: Blobs.ObjectBlob, callback: Common.ResultCallback<Common.MetadataHash>): void;
-            (name: Common.Name, content: Blobs.ObjectBlob): Promise<Common.MetadataHash>;
+            (name: GmeCommon.Name, content: Blobs.ObjectBlob, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash>): void;
+            (name: GmeCommon.Name, content: Blobs.ObjectBlob): Promise<GmeCommon.MetadataHash>;
         }
         /** Adds files as soft-link. */
         addFileAsSoftLink: {
-            (name: Common.Name, content: Blobs.ObjectBlob, callback: Common.ResultCallback<Common.MetadataHash>): void;
-            (name: Common.Name, content: Blobs.ObjectBlob): Promise<Common.MetadataHash>;
+            (name: GmeCommon.Name, content: Blobs.ObjectBlob, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash>): void;
+            (name: GmeCommon.Name, content: Blobs.ObjectBlob): Promise<GmeCommon.MetadataHash>;
         }
         /** Adds multiple files. */
         addFiles: {
-            (files: { [name: string]: Blobs.ObjectBlob }, callback: Common.ResultCallback<Common.MetadataHash[]>): void;
-            (files: { [name: string]: Blobs.ObjectBlob }): Promise<Common.MetadataHash[]> | Promise<string>;
+            (files: { [name: string]: Blobs.ObjectBlob }, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash[]>): void;
+            (files: { [name: string]: Blobs.ObjectBlob }): Promise<GmeCommon.MetadataHash[]> | Promise<string>;
         }
         /** Adds multiple files as soft-links. */
         addFilesAsSoftLinks: {
-            (files: { [name: string]: Blobs.ObjectBlob }, callback: Common.ResultCallback<Common.MetadataHash[]>): void;
-            (files: { [name: string]: Blobs.ObjectBlob }): Promise<Common.MetadataHash[]>;
+            (files: { [name: string]: Blobs.ObjectBlob }, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash[]>): void;
+            (files: { [name: string]: Blobs.ObjectBlob }): Promise<GmeCommon.MetadataHash[]>;
         }
         /** Adds a metadataHash to the artifact using the given file path. */
         addMetadataHash: {
-            (name: Common.Name, metadataHash: Common.MetadataHash, size: number, callback: Common.ResultCallback<Common.MetadataHash>): void;
-            (name: Common.Name, metadataHash: Common.MetadataHash, size?: number): Promise<Common.MetadataHash>;
+            (name: GmeCommon.Name, metadataHash: GmeCommon.MetadataHash, size: number, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash>): void;
+            (name: GmeCommon.Name, metadataHash: GmeCommon.MetadataHash, size?: number): Promise<GmeCommon.MetadataHash>;
 
-            (objectHashes: { [name: string]: string }, callback: Common.ResultCallback<Common.MetadataHash>): void;
-            (objectHashes: { [name: string]: string }): Promise<Common.MetadataHash>;
+            (objectHashes: { [name: string]: string }, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash>): void;
+            (objectHashes: { [name: string]: string }): Promise<GmeCommon.MetadataHash>;
         }
         /** Adds metadataHashes to the artifact using the given file paths. */
         addMetadataHashes: {
-            (name: Common.Name, metadataHash: Common.MetadataHash, size: number, callback: Common.ResultCallback<Common.MetadataHash[]>): void;
-            (name: Common.Name, metadataHash: Common.MetadataHash, size?: number): Promise<Common.MetadataHash[]>;
+            (name: GmeCommon.Name, metadataHash: GmeCommon.MetadataHash, size: number, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash[]>): void;
+            (name: GmeCommon.Name, metadataHash: GmeCommon.MetadataHash, size?: number): Promise<GmeCommon.MetadataHash[]>;
 
-            (objectHashes: { [name: string]: string }, callback: Common.ResultCallback<Common.MetadataHash[]>): void;
-            (objectHashes: { [name: string]: string }): Promise<Common.MetadataHash[]>;
+            (objectHashes: { [name: string]: string }, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash[]>): void;
+            (objectHashes: { [name: string]: string }): Promise<GmeCommon.MetadataHash[]>;
         }
         /** Adds a metadataHash to the artifact using the given file path. */
         addObjectHash: {
-            (name: Common.Name, metadataHash: Common.MetadataHash, callback: Common.ResultCallback<Common.MetadataHash>): void;
-            (name: Common.Name, metadataHash: Common.MetadataHash): Promise<Common.MetadataHash>;
+            (name: GmeCommon.Name, metadataHash: GmeCommon.MetadataHash, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash>): void;
+            (name: GmeCommon.Name, metadataHash: GmeCommon.MetadataHash): Promise<GmeCommon.MetadataHash>;
         }
         /** Adds metadataHashes to the artifact using the given file paths. */
         addObjectHashes: {
-            (objectHashes: { [name: string]: string }, callback: Common.ResultCallback<Common.MetadataHash[]>): void;
-            (objectHashes: { [name: string]: string }): Promise<Common.MetadataHash[]>;
+            (objectHashes: { [name: string]: string }, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash[]>): void;
+            (objectHashes: { [name: string]: string }): Promise<GmeCommon.MetadataHash[]>;
         }
         /** Saves this artifact and uploads the metadata to the server's storage. */
         save: {
-            (callback: Common.ResultCallback<Common.MetadataHash>): void;
-            (message?: string): Promise<Common.MetadataHash>;
+            (callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash>): void;
+            (message?: string): Promise<GmeCommon.MetadataHash>;
         }
     }
     /**
@@ -396,7 +399,7 @@ declare namespace Classes {
      status - storage.constants./SYNCED/FORKED/MERGED
     */
     export interface Commit {
-        commitHash: Common.MetadataHash;
+        commitHash: GmeCommon.MetadataHash;
         status: string;
         branchName: string;
     }
@@ -406,7 +409,7 @@ declare namespace Classes {
         /** array of PluginMessages */
         messages: string[];
         /** array of hashes */
-        artifacts: Common.ArtifactHash[];
+        artifacts: GmeCommon.ArtifactHash[];
         pluginName: string;
         startTime: Date;
         finishTime: Date;
@@ -425,11 +428,11 @@ declare namespace Classes {
         /**
         * Returns with the plugin messages.
         */
-        getMessages(): Common.Message[];
+        getMessages(): GmeCommon.Message[];
         /**
         * Adds a new plugin message to the messages list.
         */
-        addMessage(pluginMessage: Common.Message): void;
+        addMessage(pluginMessage: GmeCommon.Message): void;
         /**
         * Returns the plugin artifacts.
         */
@@ -438,7 +441,7 @@ declare namespace Classes {
         * Adds a saved artifact to the result - linked via its metadataHash.
         * Takes the metadataHash of saved artifact.
         */
-        addArtifact(metadataHash: Common.MetadataHash): void;
+        addArtifact(metadataHash: GmeCommon.MetadataHash): void;
         /**
         * Adds a commit to the commit container.
         */
@@ -461,32 +464,32 @@ declare namespace Classes {
         /**
         * Gets the ISO 8601 representation of the time when the plugin started its execution.
         */
-        getStartTime(): Common.ISO8601;
+        getStartTime(): GmeCommon.ISO8601;
         /**
         * Sets the ISO 8601 representation of the time when the plugin started its execution.
         */
-        setStartTime(time: Common.ISO8601): void;
+        setStartTime(time: GmeCommon.ISO8601): void;
         /**
         * Gets the ISO 8601 representation of the time when the plugin finished its execution.
         */
-        getFinishTime(): Common.ISO8601;
+        getFinishTime(): GmeCommon.ISO8601;
         /**
         * Sets the ISO 8601 representation of the time when the plugin finished its execution.
         */
-        setFinishTime(time: Common.ISO8601): void;
+        setFinishTime(time: GmeCommon.ISO8601): void;
         /**
         * Gets error if any error occured during execution.
         * FIXME: should this return an Error object?
         */
-        getError(): Common.ErrorStr;
+        getError(): GmeCommon.ErrorStr;
         /**
         * Sets the error string if any error occured during execution.
         */
-        setError(error: Common.ErrorStr | Error): void;
+        setError(error: GmeCommon.ErrorStr | Error): void;
         /**
         * Serializes this object to a JSON representation.
         */
-        serialize(): { success: boolean, messages: Common.Message[], pluginName: string, finishTime: string };
+        serialize(): { success: boolean, messages: GmeCommon.Message[], pluginName: string, finishTime: string };
     }
 
 
@@ -502,7 +505,7 @@ declare namespace Classes {
         base?: Core.Node | null;
         /** the relative id of the node to be created 
          * (if reserved, the function returns the node behind the relative id) */
-        relid?: Common.RelId;
+        relid?: GmeCommon.RelId;
         /** the GUID of the node to be created */
         guid?: Core.GUID;
     }
@@ -556,7 +559,7 @@ declare namespace Classes {
             /** the node in question. */
             node: Core.Node;
             /** the name of the set. */
-            name: Common.Name;
+            name: GmeCommon.Name;
             /** the members of the set of the node in question. */
             members?: Core.Node[]
         };
@@ -613,9 +616,9 @@ declare namespace Classes {
          * @param libraryInfo information about your project.
          */
         addLibrary: {
-            (node: Core.Node, name: Common.Name, libraryRootHash: string,
-                libraryInfo: LibraryInfo, callback: Common.ResultCallback<Core.DataObject>): void;
-            (node: Core.Node, name: Common.Name, libraryRootHash: string,
+            (node: Core.Node, name: GmeCommon.Name, libraryRootHash: string,
+                libraryInfo: LibraryInfo, callback: GmeCommon.ResultCallback<Core.DataObject>): void;
+            (node: Core.Node, name: GmeCommon.Name, libraryRootHash: string,
                 libraryInfo: LibraryInfo): Promise<Core.DataObject>;
         }
         /**
@@ -626,14 +629,14 @@ declare namespace Classes {
          * @return If the set is not allowed to be modified, 
          * the function returns an error.
          */
-        addMember(node: Core.Node, name: Common.Name, member: Core.Node): undefined | Error;
+        addMember(node: Core.Node, name: GmeCommon.Name, member: Core.Node): undefined | Error;
         /**
          * Adds a mixin to the mixin set of the node.
          * @param node the node in question.
          * @param the path of the mixin node.
          * @return If the node is not allowed to be modified, the function returns an error.
          */
-        addMixin(node: Core.Node, mixinPath: Common.Path): undefined | Error;
+        addMixin(node: Core.Node, mixinPath: GmeCommon.Path): undefined | Error;
         /**
          * When our attempt to merge two patches ended in some conflict, 
          * then we can modify that result highlighting that in case of every conflict, 
@@ -656,7 +659,7 @@ declare namespace Classes {
          * @return only reports errors.
          */
         applyTreeDiff: {
-            (root: Core.Node, patch: Core.DataObject, callback: Common.ResultCallback<Core.DataObject>): void;
+            (root: Core.Node, patch: Core.DataObject, callback: GmeCommon.ResultCallback<Core.DataObject>): void;
             (root: Core.Node, patch: Core.DataObject): Promise<Core.DataObject>;
         }
         /**
@@ -665,7 +668,7 @@ declare namespace Classes {
          * @param mixinPath the path of the mixin node.
          * @return Returns if the mixin could be added, or the reason why it is not.
          */
-        canSetAsMixin(node: Core.Node, mixinPath: Common.Path): boolean | string;
+        canSetAsMixin(node: Core.Node, mixinPath: GmeCommon.Path): boolean | string;
         /**
          * Removes all META rules that were specifically defined for the node 
          * (so the function do not touches inherited rules).
@@ -707,14 +710,14 @@ declare namespace Classes {
          * @param name the name of the set.
          * @return If the node is not allowed to be modified, the function returns an error.
          */
-        createSet(node: Core.Node, name: Common.Name): undefined | Error;
+        createSet(node: Core.Node, name: GmeCommon.Name): undefined | Error;
         /**
          * Removes the given aspect rule of the node.
          * @param node the node whose aspect rule will be deleted.
          * @param name the name of the aspect rule.
          * @return  If the node is not allowed to be modified, the function returns an error.
          */
-        delAspectMeta(node: Core.Node, name: Common.Name): undefined | Error;
+        delAspectMeta(node: Core.Node, name: GmeCommon.Name): undefined | Error;
         /**
          * Removes a valid type from the given aspect of the node.
          * @param node the node in question.
@@ -722,35 +725,35 @@ declare namespace Classes {
          * @param targetPath the absolute path of the valid type of the aspect.
          * @return If the node is not allowed to be modified, the function returns an error.
          */
-        delAspectMetaTarget(node: Core.Node, name: Common.Name, targetPath: Common.Path): undefined | Error;
+        delAspectMetaTarget(node: Core.Node, name: GmeCommon.Name, targetPath: GmeCommon.Path): undefined | Error;
         /**
          * Removes the given attributes from the given node.
          * @param node the node in question.
          * @param name the name of the attribute.
          * @return If the node is not allowed to be modified, the function returns an error.
          */
-        delAttribute(node: Core.Node, name: Common.Name): undefined | Error;
+        delAttribute(node: Core.Node, name: GmeCommon.Name): undefined | Error;
         /**
          * Removes an attribute definition from the META rules of the node.
          * @param name the node in question.
          * @param name the name of the attribute.
          * @return If the node is not allowed to be modified, the function returns an error.
          */
-        delAttributeMeta(node: Core.Node, name: Common.Name): undefined | Error;
+        delAttributeMeta(node: Core.Node, name: GmeCommon.Name): undefined | Error;
         /**
          * Removes the given child rule from the node.
          * @param the node in question.
          * @param childPath the absolute path of the child which rule is to be removed from the node.
          * @return If the node is not allowed to be modified, the function returns an error.
          */
-        delChildMeta(node: Core.Node, childPath: Common.Path): undefined | Error;
+        delChildMeta(node: Core.Node, childPath: GmeCommon.Path): undefined | Error;
         /**
          * Removes a constraint from the node.
          * @param node the node in question.
          * @param name the name of the constraint.
          * @return If the node is not allowed to be modified, the function returns an error.
          */
-        delConstraint(node: Core.Node, name: Common.Name): undefined | Error;
+        delConstraint(node: Core.Node, name: GmeCommon.Name): undefined | Error;
         /**
          * Removes a node from the containment hierarchy.
          * It also removes all contained nodes.
@@ -764,14 +767,14 @@ declare namespace Classes {
          * @param name the name of the pointer.
          * @return If the node is not allowed to be modified, the function returns an error.
          */
-        deletePointer(node: Core.Node, name: Common.Name): undefined | Error;
+        deletePointer(node: Core.Node, name: GmeCommon.Name): undefined | Error;
         /**
          * Removes a set from the node.
          * @param node the node in question.
          * @param name the name of the set.
          * @return If the node is not allowed to be modified, the function returns an error.
          */
-        deleteSet(node: Core.Node, name: Common.Name): undefined | Error;
+        deleteSet(node: Core.Node, name: GmeCommon.Name): undefined | Error;
         /**
          * Removes a member from the set. The functions doesn't remove the node itself.
          * @param node the node in question.
@@ -779,7 +782,7 @@ declare namespace Classes {
          * @param path the path to the member to be removed.
          * @return If the node is not allowed to be modified, the function returns an error.
          */
-        delMember(node: Core.Node, name: Common.Name, path: Common.Path): undefined | Error;
+        delMember(node: Core.Node, name: GmeCommon.Name, path: GmeCommon.Path): undefined | Error;
         /**
          * Removes an attribute which represented a property of the given set membership.
          * @param node the node in question.
@@ -788,7 +791,7 @@ declare namespace Classes {
          * @param attrName the name of the attribute.
          * @return If the node is not allowed to be modified, the function returns an error.
          */
-        delMemberAttribute(node: Core.Node, setName: Common.Name, memberPath: Common.Path, attrName: Common.Name): undefined | Error;
+        delMemberAttribute(node: Core.Node, setName: GmeCommon.Name, memberPath: GmeCommon.Path, attrName: GmeCommon.Name): undefined | Error;
         /**
          * Removes a registry entry which represented a property of the given set membership.
          * @param node the node in question.
@@ -797,21 +800,21 @@ declare namespace Classes {
          * @param regName the name of the registry entry.
          * @return If the node is not allowed to be modified, the function returns an error.
          */
-        delMemberRegistry(node: Core.Node, setName: Common.Name, memberPath: Common.Path, regName: Common.Name): undefined | Error;
+        delMemberRegistry(node: Core.Node, setName: GmeCommon.Name, memberPath: GmeCommon.Path, regName: GmeCommon.Name): undefined | Error;
         /**
          * Removes a mixin from the mixin set of the node.
          * @param node the node in question.
          * @param mixinPath the path of the mixin node.
          * @return If the node is not allowed to be modified, the function returns an error. 
          */
-        delMixin(node: Core.Node, mixinPath: Common.Path): undefined | Error;
+        delMixin(node: Core.Node, mixinPath: GmeCommon.Path): undefined | Error;
         /**
          * Removes the complete META rule regarding the given pointer/set of the node.
          * @param node the node in question.
          * @param name the name of the pointer/set.
          * @return If the node is not allowed to be modified, the function returns an error. 
          */
-        delPointerMeta(node: Core.Node, name: Common.Name): undefined | Error;
+        delPointerMeta(node: Core.Node, name: GmeCommon.Name): undefined | Error;
         /**
          * Removes a possible target type from the pointer/set of the node.
          * @param node the node in question.
@@ -819,14 +822,14 @@ declare namespace Classes {
          * @param targetPath the absolute path of the possible target type.
          * @return If the node is not allowed to be modified, the function returns an error. 
          */
-        delPointerMetaTarget(node: Core.Node, name: Common.Name, targetPath: string): undefined | Error;
+        delPointerMetaTarget(node: Core.Node, name: GmeCommon.Name, targetPath: string): undefined | Error;
         /**
          * Removes the given registry entry from the given node.
          * @param node the node in question.
          * @param name the name of the registry entry.
          * @return If the node is not allowed to be modified, the function returns an error. 
          */
-        delRegistry(node: Core.Node, name: Common.Name): undefined | Error;
+        delRegistry(node: Core.Node, name: GmeCommon.Name): undefined | Error;
         /**
          * Removes the attribute entry for the set at the node.
          * @param node the node in question.
@@ -834,7 +837,7 @@ declare namespace Classes {
          * @param attrName the name of the attribute entry.
          * @return If the node is not allowed to be modified, the function returns an error. 
          */
-        delSetAttribute(node: Core.Node, setName: Common.Name, attrName: Common.Name): undefined | Error;
+        delSetAttribute(node: Core.Node, setName: GmeCommon.Name, attrName: GmeCommon.Name): undefined | Error;
         /**
          * Removes the registry entry for the set at the node.
          * @param node the node in question.
@@ -842,7 +845,7 @@ declare namespace Classes {
          * @param regName the name of the registry entry.
          * @return If the node is not allowed to be modified, the function returns an error. 
          */
-        delSetRegistry(node: Core.Node, setName: Common.Name, regName: Common.Name): undefined | Error;
+        delSetRegistry(node: Core.Node, setName: GmeCommon.Name, regName: GmeCommon.Name): undefined | Error;
         /**
          * Generates a differential tree among the two states 
          * of the project that contains the necessary changes 
@@ -853,7 +856,7 @@ declare namespace Classes {
          * @return the result is in form of a json object.
          */
         generateTreeDiff: {
-            (sourceRoot: Core.Node, targetRoot: Core.Node, callback: Common.ResultCallback<Core.DataObject>): void;
+            (sourceRoot: Core.Node, targetRoot: Core.Node, callback: GmeCommon.ResultCallback<Core.DataObject>): void;
             (sourceRoot: Core.Node, targetRoot: Core.Node): Promise<Core.DataObject>;
         }
         /**
@@ -864,7 +867,7 @@ declare namespace Classes {
          * paths of the META nodes of the project. 
          * Every value of the dictionary is a module:Core~Node.
          */
-        getAllMetaNodes(node: Core.Node): Common.Dictionary<Core.Node>;
+        getAllMetaNodes(node: Core.Node): GmeCommon.Dictionary<Core.Node>;
         /**
          * Returns the list of valid children types of the given aspect.
          * @param node the node in question
@@ -876,7 +879,7 @@ declare namespace Classes {
          * the node must be an instance of at least one node 
          * represented by the absolute paths.
          */
-        getAspectMeta(node: Core.Node, name: Common.Name): Common.Path[];
+        getAspectMeta(node: Core.Node, name: GmeCommon.Name): GmeCommon.Path[];
         /**
         * Retrieves the value of the given attribute of the given node.
         * @param node - the node in question.
@@ -888,20 +891,20 @@ declare namespace Classes {
         * If the return value is undefined; the node does not have such attribute defined.
         * If the node is undefined the returned value is null.
         */
-        getAttribute(node: Core.Node | null, name: Common.Name): Common.OutAttr;
+        getAttribute(node: Core.Node | null, name: GmeCommon.Name): GmeCommon.OutAttr;
         /**
          * Returns the definition object of an attribute from the META rules of the node.
          * @param node the node in question.
          * @param name the name of the attribute.
          * @return The function returns the definition object, where type is always defined.
          */
-        getAttributeMeta(node: Core.Node, name: Common.Name): Common.DefObject;
+        getAttributeMeta(node: Core.Node, name: GmeCommon.Name): GmeCommon.DefObject;
         /** 
          * Get the defined attribute names for the node.
          * @param node the node in question.
          * @return The function returns an array of the names of the attributes of the node.
          */
-        getAttributeNames(node: Core.Node): Common.Name[];
+        getAttributeNames(node: Core.Node): GmeCommon.Name[];
         /** 
          * Get the base node 
          * @param node the node in question.
@@ -933,7 +936,7 @@ declare namespace Classes {
          * given node plus it returns all the mixin nodes 
          * associated with the base in a path-node dictionary.
          */
-        getBaseTypes(node: Core.Node): Common.Dictionary<Core.Node> | null;
+        getBaseTypes(node: Core.Node): GmeCommon.Dictionary<Core.Node> | null;
         /**
          * Retrieves the child of the input node at the given relative id.
          * It is not an asynchronous load and it automatically creates 
@@ -952,7 +955,7 @@ declare namespace Classes {
          * @return a dictionary of module:Core~ObjectHash that stored in 
          * pair with the relative id of the corresponding child of the node.
          */
-        getChildrenHashes(node: Core.Node): Common.Dictionary<Common.MetadataHash>;
+        getChildrenHashes(node: Core.Node): GmeCommon.Dictionary<GmeCommon.MetadataHash>;
         /**
          * Return a JSON representation of the META rules 
          * regarding the valid children of the given node.
@@ -966,13 +969,13 @@ declare namespace Classes {
          * @param node the node in question.
          * @return an array of the absolute paths of the children.
          */
-        getChildrenPaths(parent: Core.Node): Common.Path[];
+        getChildrenPaths(parent: Core.Node): GmeCommon.Path[];
         /**
          * Collects the relative ids of all the children of the given node.
          * @param parent the container node in question.
          * @return an array of the relative ids.
          */
-        getChildrenRelids(parent: Core.Node): Common.RelId[];
+        getChildrenRelids(parent: Core.Node): GmeCommon.RelId[];
         /**
          * Retrieves a list of the defined pointer names that has the node as target.
          * @param node the node in question.
@@ -987,20 +990,20 @@ declare namespace Classes {
          * @return an array of absolute paths of nodes having
          *  pointers pointing to the node.
          */
-        getCollectionPaths(node: Core.Node, name: Common.Name): Common.Path[];
+        getCollectionPaths(node: Core.Node, name: GmeCommon.Name): GmeCommon.Path[];
         /**
          * Gets a constraint object of the node.
          * @param node the node in question.
          * @param name the name of the constraint.
          * @return the defined constraint or null if it was not defined for the node
          */
-        getConstraint(node: Core.Node, name: Common.Name): Core.Constraint | null
+        getConstraint(node: Core.Node, name: GmeCommon.Name): Core.Constraint | null
         /**
          * Retrieves the list of constraint names defined for the node.
          * @param node the node in question.
          * @return the array of names of constraints available for the node.
          */
-        getConstraintNames(node: Core.Node): Common.Name[];
+        getConstraintNames(node: Core.Node): GmeCommon.Name[];
         /**
          * Return the root of the inheritance chain of your Meta nodes.
          * @param node the node in question.
@@ -1013,7 +1016,7 @@ declare namespace Classes {
          * which is the list of its namespaces separated 
          * by dot and followed by the name of the node.
          */
-        getFullyQualifiedName(node: Core.Node): Common.Name;
+        getFullyQualifiedName(node: Core.Node): GmeCommon.Name;
         /**
          * @param node the node in question.
          * @return the globally unique identifier for the node.
@@ -1027,19 +1030,19 @@ declare namespace Classes {
          *  node was mutated but not yet saved to the database, 
          *  so it does not have a hash temporarily.
          */
-        getHash(node: Core.Node): Common.MetadataHash;
+        getHash(node: Core.Node): GmeCommon.MetadataHash;
         /**
          * Collects the paths of all the instances of the given node.
          * @param node the node in question.
          * @return an array of the absolute paths of the instances.
          */
-        getInstancePaths(node: Core.Node): Common.Path[];
+        getInstancePaths(node: Core.Node): GmeCommon.Path[];
         /**
          * Gives a JSON representation of the META rules of the node.
          * @param node the node in question.
          * @return an object that represents all the META rules of the node.
          */
-        getJsonMeta(node: Core.Node): Common.MetaRules;
+        getJsonMeta(node: Core.Node): GmeCommon.MetaRules;
         /**
          * Returns the origin GUID of any library node.
          * @param node the node in question.
@@ -1048,7 +1051,7 @@ declare namespace Classes {
          * direct library root of the node
          * @return the origin GUID of the node or error if the query cannot be fulfilled.
          */
-        getLibraryGuid(node: Core.Node, name: Common.Name | undefined): Core.GUID | Error;
+        getLibraryGuid(node: Core.Node, name: GmeCommon.Name | undefined): Core.GUID | Error;
         /**
          * Returns the info associated with the library.
          * @param node the node in question.
@@ -1056,7 +1059,7 @@ declare namespace Classes {
          * @return the information object, stored alongside the library 
          * (that basically carries metaData about the library).
          */
-        getLibraryInfo(node: Core.Node, name: Common.Name): LibraryInfo;
+        getLibraryInfo(node: Core.Node, name: GmeCommon.Name): LibraryInfo;
         /**
          * Returns all the Meta nodes within the given library. 
          * By default it will include nodes defined in any 
@@ -1066,7 +1069,7 @@ declare namespace Classes {
          * @param onlyOwn if true only returns with Meta nodes defined in the library itself.
          * @return an array of core nodes that are part of your meta from the given library.
          */
-        getLibraryMetaNodes(node: Core.Node, name: Common.Name, onlyOwn?: boolean): Core.Node[];
+        getLibraryMetaNodes(node: Core.Node, name: GmeCommon.Name, onlyOwn?: boolean): Core.Node[];
         /**
          * Gives back the list of libraries in your project.
          * @param node the node in question.
@@ -1075,13 +1078,13 @@ declare namespace Classes {
          * @return the fully qualified names of all the 
          * libraries in your project (even embedded ones).
          */
-        getLibraryNames(node: Core.Node): Common.Name[];
+        getLibraryNames(node: Core.Node): GmeCommon.Name[];
         /**
          * @param node the node in question.
          * @param name of the library.
          * @return the library root node or null, if the library is unknown.
          */
-        getLibraryRoot(node: Core.Node, name: Common.Name): Core.Node | null;
+        getLibraryRoot(node: Core.Node, name: GmeCommon.Name): Core.Node | null;
         /**
          * @param node the node in question.
          * @param setName of the set.
@@ -1090,8 +1093,8 @@ declare namespace Classes {
          * If it is undefined, 
          * then there is no such attributed connected to the given set membership.
          */
-        getMemberAttribute(node: Core.Node, setName: Common.Name,
-            memberPath: Common.Path, attrName: Common.Name): Common.OutAttr;
+        getMemberAttribute(node: Core.Node, setName: GmeCommon.Name,
+            memberPath: GmeCommon.Path, attrName: GmeCommon.Name): GmeCommon.OutAttr;
         /**
          * @param node the node in question.
          * @param name of the set.
@@ -1099,14 +1102,14 @@ declare namespace Classes {
          * @return the array of names of attributes that 
          * represents some property of the membership.
          */
-        getMemberAttributeNames(node: Core.Node, name: Common.Name, memberPath: Common.Path): string[];
+        getMemberAttributeNames(node: Core.Node, name: GmeCommon.Name, memberPath: GmeCommon.Path): string[];
         /**
          * @param node the node in question.
          * @param name of the set.
          * @param memberPath the absolute path of the member node.
          * @return the array of names of attributes that represents some property of the membership.
          */
-        getMemberOwnAttributeNames(node: Core.Node, name: Common.Name, memberPath: Common.Path): string[];
+        getMemberOwnAttributeNames(node: Core.Node, name: GmeCommon.Name, memberPath: GmeCommon.Path): string[];
         /**
          * @param node the node in question.
          * @param name of the set.
@@ -1115,7 +1118,7 @@ declare namespace Classes {
          * @return the value of the registry. 
          * If it is undefined, than there is no such registry connected to the given set membership.
          */
-        getMemberOwnRegistry(node: Core.Node, name: Common.Name, memberPath: string): Common.OutAttr;
+        getMemberOwnRegistry(node: Core.Node, name: GmeCommon.Name, memberPath: string): GmeCommon.OutAttr;
         /**
          * Return the names of the registry entries defined 
          * for the set membership specifically defined to the member node.
@@ -1124,14 +1127,14 @@ declare namespace Classes {
          * @param memberPath the absolute path of the member node.
          * @return the array of names of registry entries that represents some property of the membership.
          */
-        getMemberOwnRegistryNames(node: Core.Node, name: Common.Name): string[];
+        getMemberOwnRegistryNames(node: Core.Node, name: GmeCommon.Name): string[];
         /**
          * Returns the list of absolute paths of the members of the given set of the given node.
          * @param node the node in question.
          * @param name of the set.
          * @return an array of absolute path strings of the member nodes of the set.
          */
-        getMemberPaths(node: Core.Node, name: Common.Name): string[];
+        getMemberPaths(node: Core.Node, name: GmeCommon.Name): string[];
         /**
          * @param node the node in question.
          * @param setName of the set.
@@ -1140,14 +1143,14 @@ declare namespace Classes {
          * @return the value of the registry. 
          * If it is undefined, then there is no such registry connected to the given set membership.
          */
-        getMemberRegistry(node: Core.Node, setName: string, memberPath: string, regName: string): Common.OutAttr;
+        getMemberRegistry(node: Core.Node, setName: string, memberPath: string, regName: string): GmeCommon.OutAttr;
         /**
          * @param node the node in question.
          * @param name of the set.
          * @param memberPath the absolute path of the member node.
          * @return the array of names of registry entries that represents some property of the membership.
          */
-        getMemberRegistryNames(node: Core.Node, name: Common.Name, memberpath: string): Common.Name[];
+        getMemberRegistryNames(node: Core.Node, name: GmeCommon.Name, memberpath: string): GmeCommon.Name[];
         /**
          * Checks if the mixins allocated with the node can be used. 
          * Every mixin node should be on the Meta. 
@@ -1162,13 +1165,13 @@ declare namespace Classes {
          * @param node the node in question.
          * @return the dictionary of the mixin nodes keyed by their paths.
          */
-        getMixinNodes(node: Core.Node): Common.Dictionary<Core.Node>;
+        getMixinNodes(node: Core.Node): GmeCommon.Dictionary<Core.Node>;
         /**
          * Gathers the paths of the mixin nodes associated with the node.
          * @param node the node in question.
          * @return the paths of the mixins in an array.
          */
-        getMixinPaths(node: Core.Node): Common.Path[];
+        getMixinPaths(node: Core.Node): GmeCommon.Path[];
         /**
          * Returns the resolved namespace for the node. 
          * If node is not in a library it returns the empty string. 
@@ -1177,7 +1180,7 @@ declare namespace Classes {
          * @param node the node in question.
          * @return the name space of the node.
          */
-        getNamespace(node: Core.Node): Common.Name;
+        getNamespace(node: Core.Node): GmeCommon.Name;
         /**
          * @param node the node in question.
          * @return the value of the attribute defined specifically for the node. 
@@ -1186,21 +1189,21 @@ declare namespace Classes {
          * meaning that it either inherits some value or 
          * there is no such attribute at all.
          */
-        getOwnAttribute(node: Core.Node, name: Common.Name): Common.OutAttr;
+        getOwnAttribute(node: Core.Node, name: GmeCommon.Name): GmeCommon.OutAttr;
         /**
          * Returns the names of the attributes of the node that have 
          * been first defined for the node and not for its bases.
          * @param node the node in question.
          * @return an array of the names of the own attributes of the node.
          */
-        getOwnAttributeNames(node: Core.Node): Common.Name[];
+        getOwnAttributeNames(node: Core.Node): GmeCommon.Name[];
         /**
          * Collects the paths of all the children of the given node 
          * that has some data as well and not just inherited.
          * @param parent the node in question.
          * @return an array of the absolute paths of the children.
          */
-        getOwnChildrenPaths(parent: Core.Node): Common.Path[];
+        getOwnChildrenPaths(parent: Core.Node): GmeCommon.Path[];
         /**
          * Collects the relative ids of all the children 
          * of the given node that has some data and not just inherited. 
@@ -1208,20 +1211,20 @@ declare namespace Classes {
          * @param parent the node in question.
          * @return an array of the relative ids.
          */
-        getOwnChildrenRelids(parent: Core.Node): Common.RelId[];
+        getOwnChildrenRelids(parent: Core.Node): GmeCommon.RelId[];
         /**
          * Retrieves the list of constraint names defined specifically for the node.
          * @param node the node in question.
          * @return the array of names of constraints for the node.
          */
-        getOwnConstraintNames(node: Core.Node): Common.Name[];
+        getOwnConstraintNames(node: Core.Node): GmeCommon.Name[];
         /**
          * Returns the META rules specifically defined for the given node.
          * @param node the node in question.
          * @return an object that represent the META 
          * rules that were defined specifically for the node.
          */
-        getOwnJsonMeta(node: Core.Node): Common.MetaRules;
+        getOwnJsonMeta(node: Core.Node): GmeCommon.MetaRules;
         /**
          * Returns the list of absolute paths of the members of the 
          * given set of the given node that not simply inherited.
@@ -1229,27 +1232,27 @@ declare namespace Classes {
          * @return an array of absolute path strings of the member nodes of 
          * the set that has information on the node's inheritance level.
          */
-        getOwnMemberPaths(node: Core.Node, name: Common.Name): Common.Path[];
+        getOwnMemberPaths(node: Core.Node, name: GmeCommon.Name): GmeCommon.Path[];
         /**
          * Gathers the mixin nodes associated with the node that were defined specifically for the given node.
          * @param node the node in question.
          * @return the dictionary of the own mixin nodes keyed by their paths.
          */
-        getOwnMixinNodes(node: Core.Node): Common.Dictionary<Core.Node>;
+        getOwnMixinNodes(node: Core.Node): GmeCommon.Dictionary<Core.Node>;
         /**
          * Gathers the paths of the mixin nodes associated with the node 
          * that were defined specifically for the given node.
          * @param node the node in question.
          * @return the paths of the own mixins in an array.
          */
-        getOwnMixinPaths(node: Core.Node): Common.Path[];
+        getOwnMixinPaths(node: Core.Node): GmeCommon.Path[];
         /**
          * Returns the list of the names of the 
          * pointers that were defined specifically for the node.
          * @param node the node in question.
          * @return an array of names of pointers defined specifically for the node.
          */
-        getOwnPointerNames(node: Core.Node): Common.Name[];
+        getOwnPointerNames(node: Core.Node): GmeCommon.Name[];
         /**
          * Returns the absolute path of the target 
          * of the pointer specifically defined for the node.
@@ -1261,7 +1264,7 @@ declare namespace Classes {
          * If undefined it means that the node either inherits 
          * the target of the pointer or there is no pointer defined at all.
          */
-        getOwnPointerPath(node: Core.Node, name: Common.Name): Common.OutPath;
+        getOwnPointerPath(node: Core.Node, name: GmeCommon.Name): GmeCommon.OutPath;
         /**
          * Returns the value of the registry entry defined for the given node.
          * @param node the node in question.
@@ -1273,7 +1276,7 @@ declare namespace Classes {
          * meaning that it either inherits some value 
          * or there is no such registry entry at all.
          */
-        getOwnRegistry(node: Core.Node, name: Common.Name): Common.OutAttr;
+        getOwnRegistry(node: Core.Node, name: GmeCommon.Name): GmeCommon.OutAttr;
         /**
          * Returns the names of the registry enrties of the node 
          * that have been first defined for the node and not for its bases.
@@ -1285,7 +1288,7 @@ declare namespace Classes {
          * meaning that it either inherits some value 
          * or there is no such registry entry at all.
          */
-        getOwnRegistryNames(node: Core.Node): Common.Name[];
+        getOwnRegistryNames(node: Core.Node): GmeCommon.Name[];
         /**
          * Get the value of the attribute entry 
          * specifically set for the set at the node.
@@ -1293,14 +1296,14 @@ declare namespace Classes {
          * @return the value of the attribute. 
          * If it is undefined, than there is no such attribute at the set.
          */
-        getOwnSetAttribute(node: Core.Node): Common.OutAttr[];
+        getOwnSetAttribute(node: Core.Node): GmeCommon.OutAttr[];
         /**
          * Return the names of the attribute 
          * entries specifically set for the set at the node.
          * @param node the node in question.
          * @return the array of names of attribute entries defined in the set at the node.
          */
-        getOwnSetAttributeNames(node: Core.Node): Common.Name[];
+        getOwnSetAttributeNames(node: Core.Node): GmeCommon.Name[];
         /**
          * Returns the names of the sets created specifically at the node. 
          * n.b. When adding a member to a set of a node, 
@@ -1308,7 +1311,7 @@ declare namespace Classes {
          * @param node the node in question.
          * @return an array of set names that were specifically created at the node.
          */
-        getOwnSetNames(node: Core.Node): Common.Name[];
+        getOwnSetNames(node: Core.Node): GmeCommon.Name[];
         /**
          * Get the value of the registry entry specifically set for the set at the node.
          * @param node the node in question.
@@ -1317,28 +1320,28 @@ declare namespace Classes {
          * @return the value of the registry. 
          * If it is undefined, than there is no such registry at the set.
          */
-        getOwnSetRegistry(node: Core.Node, setName: Common.Name, regName: Common.Name): Common.OutAttr[];
+        getOwnSetRegistry(node: Core.Node, setName: GmeCommon.Name, regName: GmeCommon.Name): GmeCommon.OutAttr[];
         /**
          * Return the names of the registry entries specifically set for the set at the node.
          * @param node the node in question.
          * @param setName the name of the set.
          * @return the array of names of registry entries defined in the set at the node.
          */
-        getOwnSetRegistryNames(node: Core.Node, setName: Common.Name): Common.Name[];
+        getOwnSetRegistryNames(node: Core.Node, setName: GmeCommon.Name): GmeCommon.Name[];
         /**
          * Returns the list of the META defined aspect 
          * names of the node that were specifically defined for the node.
          * @param node the node in question.
          * @return the aspect names that are specifically defined for the node.
          */
-        getOwnValidAspectNames(node: Core.Node): Common.Name[];
+        getOwnValidAspectNames(node: Core.Node): GmeCommon.Name[];
         /**
          * Returns the list of the META defined attribute 
          * names of the node that were specifically defined for the node.
          * @param node the node in question.
          * @return the attribute names that are defined specifically for the node.
          */
-        getOwnValidAttributeNames(node: Core.Node): Common.Name[];
+        getOwnValidAttributeNames(node: Core.Node): GmeCommon.Name[];
         /** 
          * The parent paths are available from the node. 
          * @param node the node in question.
@@ -1352,19 +1355,19 @@ declare namespace Classes {
          * The path can be empty as well if the node in question is the root itself, 
          * otherwise it should be a chain of relative ids from the root of the containment hierarchy.
          */
-        getPath(node: Core.Node): Common.Path;
+        getPath(node: Core.Node): GmeCommon.Path;
         /**
          * Return a JSON representation of the META rules regarding the given pointer/set of the given node.
          * @param node the node in question.
          * @return a detailed JSON structure that represents the META rules regarding the given pointer/set of the node.
          */
-        getPointerMeta(node: Core.Node, name: Common.Name): Core.RelationRule;
+        getPointerMeta(node: Core.Node, name: GmeCommon.Name): Core.RelationRule;
         /**
          * Retrieves a list of the defined pointer names of the node.
          * @param node the node in question.
          * @return an array of the names of the pointers of the node.
          */
-        getPointerNames(node: Core.Node): Common.Name[];
+        getPointerNames(node: Core.Node): GmeCommon.Name[];
         /**
          * Retrieves the path of the target of the given pointer of the given node.
          * @param node the node in question.
@@ -1372,7 +1375,7 @@ declare namespace Classes {
          * It returns null if though the pointer is defined it does not have any valid target. 
          * Finally, it return undefined if there is no pointer defined for the node under the given name.
          */
-        getPointerPath(node: Core.Node, name: Common.Name): Common.OutPath;
+        getPointerPath(node: Core.Node, name: GmeCommon.Name): GmeCommon.OutPath;
         /** 
          * Get the assigned registry.
          * Retrieves the value of the given registry entry of the given node. 
@@ -1382,7 +1385,7 @@ declare namespace Classes {
          * If the value is undefined that means the node do not have such attribute defined. 
          * n.b. The retrieved registry value should not be modified as is - it should be copied first!!]
          */
-        getRegistry(node: Core.Node, name: Common.Name): Common.OutAttr;
+        getRegistry(node: Core.Node, name: GmeCommon.Name): GmeCommon.OutAttr;
         /** 
          * Get the defined registry names.
          * Returns the names of the defined registry entries of the node.
@@ -1396,7 +1399,7 @@ declare namespace Classes {
          * @param node the node in question.
          * @return the id string or return NULL and UNDEFINED if there is no such id for the node.
          */
-        getRelid(node: Core.Node): Common.RelId | null | undefined;
+        getRelid(node: Core.Node): GmeCommon.RelId | null | undefined;
         /**
          * Returns the root node of the containment tree that node is part of.
          * @param node the node in question.
@@ -1410,14 +1413,14 @@ declare namespace Classes {
          * @param attrName the name of the attribute entry.
          * @return 
          */
-        getSetAttribute(node: Core.Node, setName: Common.Name, attrName: Common.Name): Common.OutAttr;
+        getSetAttribute(node: Core.Node, setName: GmeCommon.Name, attrName: GmeCommon.Name): GmeCommon.OutAttr;
         /**
          * Return the names of the attribute entries for the set.
          * @param node the node in question.
          * @param setName the name of the set.
          * @return the array of names of attribute entries in the set.
          */
-        getSetAttributeNames(node: Core.Node, setName: Common.Name): Common.Name[];
+        getSetAttributeNames(node: Core.Node, setName: GmeCommon.Name): GmeCommon.Name[];
         /**
          * Returns the names of the sets of the node.
          * @param node the node in question.
@@ -1431,14 +1434,14 @@ declare namespace Classes {
          * @param regName the name of the registry entry.
          * @return the value of the registry. If it is undefined, than there is no such registry at the set.
          */
-        getSetRegistry(node: Core.Node, setName: Common.Name, regName: Common.Name): Common.OutAttr;
+        getSetRegistry(node: Core.Node, setName: GmeCommon.Name, regName: GmeCommon.Name): GmeCommon.OutAttr;
         /**
          * Return the names of the registry entries for the set.
          * @param node the node in question.
          * @param setName the name of the set.
          * @return the array of names of registry entries in the set.
          */
-        getSetRegistryNames(node: Core.Node, setName: Common.Name): Common.Name[];
+        getSetRegistryNames(node: Core.Node, setName: GmeCommon.Name): GmeCommon.Name[];
 
         /**
          * Returns the root of the inheritance chain (cannot be the node itself).
@@ -1452,13 +1455,13 @@ declare namespace Classes {
          * @param node the node in question.
          * @return all the aspect names that are defined among the META rules of the node.
          */
-        getValidAspectNames(node: Core.Node): Common.Name[];
+        getValidAspectNames(node: Core.Node): GmeCommon.Name[];
         /**
          * Returns the list of the META defined attribute names of the node.
          * @param node the node in question.
          * @return all the attribute names that are defined among the META rules of the node.
          */
-        getValidAttributeNames(node: Core.Node): Common.Name[];
+        getValidAttributeNames(node: Core.Node): GmeCommon.Name[];
         /**
          * Retrieves the valid META nodes that can be base of a child of the node.
          * @param node the node in question.
@@ -1471,13 +1474,13 @@ declare namespace Classes {
          * @return an array of absolute paths of the nodes 
          * that was defined as valid children for the node.
          */
-        getValidChildrenPaths(node: Core.Node): Common.Path[];
+        getValidChildrenPaths(node: Core.Node): GmeCommon.Path[];
         /**
          * Returns the list of the META defined pointer names of the node.
          * @param node the node in question.
          * @return all the pointer names that are defined among the META rules of the node.
          */
-        getValidPointerNames(node: Core.Node): Common.Name[];
+        getValidPointerNames(node: Core.Node): GmeCommon.Name[];
         /**
          * Retrieves the valid META nodes that can be base of a member of the set of the node.
          * @param parameters 
@@ -1489,7 +1492,7 @@ declare namespace Classes {
          * @param node the node in question.
          * @return all the set names that are defined among the META rules of the node.
          */
-        getValidSetNames(node: Core.Node): Common.Name[];
+        getValidSetNames(node: Core.Node): GmeCommon.Name[];
         /**
          * Checks if the node is abstract.
          * @param node the node in question.
@@ -1520,14 +1523,14 @@ declare namespace Classes {
          * If the set does not exist or the member do not have 
          * a 'base' member or just some property was overridden, the function returns false.
          */
-        isFullyOverriddenMember(node: Core.Node, setName: Common.Name, memberPath: Common.Path): boolean;
+        isFullyOverriddenMember(node: Core.Node, setName: GmeCommon.Name, memberPath: GmeCommon.Path): boolean;
         /**
          * Checks if there is a node with the given name in the nodes inheritance chain (excluding itself).
          * @param node the node in question.
          * @param name the name of the class node.
          * @return  true if it finds an ancestor with the given name attribute.
          */
-        isInstanceOf(node: Core.Node, name: Common.Name): boolean;
+        isInstanceOf(node: Core.Node, name: GmeCommon.Name): boolean;
         /**
          * Returns true if the node in question is a library element.
          * @param node the node in question.
@@ -1570,7 +1573,7 @@ declare namespace Classes {
          * @param value the value for the attribute.
          * @return 
          */
-        isValidAttributeValueOf(node: Core.Node, name: Common.Name, value: Common.InAttr): boolean;
+        isValidAttributeValueOf(node: Core.Node, name: GmeCommon.Name, value: GmeCommon.InAttr): boolean;
         /**
          * Checks if according to the META rules the given node can be a child of the parent.
          * @param node the node in question.
@@ -1601,7 +1604,7 @@ declare namespace Classes {
          * @return  true if according to the META rules, 
          * the given node is a valid target of the given pointer of the source.
          */
-        isValidTargetOf(node: Core.Node, source: Core.Node, name: Common.Name): boolean;
+        isValidTargetOf(node: Core.Node, source: Core.Node, name: GmeCommon.Name): boolean;
         /**
          * From the given starting node, it loads the path 
          * given as a series of relative ids (separated by '/') and returns the node it finds at the ends of the path. 
@@ -1610,8 +1613,8 @@ declare namespace Classes {
          * @param relativePath the relative path - built by relative ids - of the node in question.
          */
         loadByPath: {
-            (startNode: Core.Node, relativePath: Common.Path, callback: Common.ResultCallback<Common.DataObject>): void;
-            (startNode: Core.Node, relativePath: Common.Path): Promise<Common.DataObject>;
+            (startNode: Core.Node, relativePath: GmeCommon.Path, callback: GmeCommon.ResultCallback<GmeCommon.DataObject>): void;
+            (startNode: Core.Node, relativePath: GmeCommon.Path): Promise<GmeCommon.DataObject>;
         };
         /**
          * Loads the child of the given parent pointed by the relative id. 
@@ -1624,8 +1627,8 @@ declare namespace Classes {
          * @param relativeId the relative id of the child in question.
          */
         loadChild: {
-            (parent: Core.Node, relativeId: string, callback: Common.ResultCallback<Common.DataObject[]>): void;
-            (parent: Core.Node, relativeId: string): Promise<Common.DataObject[]>;
+            (parent: Core.Node, relativeId: string, callback: GmeCommon.ResultCallback<GmeCommon.DataObject[]>): void;
+            (parent: Core.Node, relativeId: string): Promise<GmeCommon.DataObject[]>;
         };
         /**
          * Loads all the children of the given parent. 
@@ -1635,8 +1638,8 @@ declare namespace Classes {
          * @see https://github.com/webgme/webgme/wiki/GME-Core-API#containment-methods
          */
         loadChildren: {
-            (parent: Core.Node, callback: Common.ResultCallback<Common.DataObject[]>): void;
-            (parent: Core.Node): Promise<Common.DataObject[]>;
+            (parent: Core.Node, callback: GmeCommon.ResultCallback<GmeCommon.DataObject[]>): void;
+            (parent: Core.Node): Promise<GmeCommon.DataObject[]>;
         }
         /**
          * Loads all the source nodes that has such a pointer and its target is the given node.
@@ -1645,15 +1648,15 @@ declare namespace Classes {
          * @return the relative id of the child in question.
          */
         loadCollection: {
-            (target: Core.Node, pointerName: Common.Name, callback: Common.ResultCallback<Common.DataObject[]>): void;
-            (target: Core.Node, pointerName: Common.Name): Promise<Common.DataObject[]>;
+            (target: Core.Node, pointerName: GmeCommon.Name, callback: GmeCommon.ResultCallback<GmeCommon.DataObject[]>): void;
+            (target: Core.Node, pointerName: GmeCommon.Name): Promise<GmeCommon.DataObject[]>;
         }
         /**
          * Loads all the instances of the given node.
          * @param node the node in question.
          */
         loadInstances: {
-            (node: Core.Node, callback: Common.ErrorOnlyCallback): void;
+            (node: Core.Node, callback: GmeCommon.ErrorOnlyCallback): void;
             (node: Core.Node): Promise<void>;
         }
         /**
@@ -1663,7 +1666,7 @@ declare namespace Classes {
          * @param parent the container node in question.
          */
         loadOwnChildren: {
-            (parent: Core.Node, callback: Common.ErrorOnlyCallback): void;
+            (parent: Core.Node, callback: GmeCommon.ErrorOnlyCallback): void;
             (parent: Core.Node): Promise<void>;
         }
         /**
@@ -1672,7 +1675,7 @@ declare namespace Classes {
          * @param node the node in question.
          */
         loadOwnSubTree: {
-            (node: Core.Node, callback: Common.ErrorOnlyCallback): void;
+            (node: Core.Node, callback: GmeCommon.ErrorOnlyCallback): void;
             (node: Core.Node): Promise<void>;
         }
         /**
@@ -1685,7 +1688,7 @@ declare namespace Classes {
          * @param pointerName the relative id of the child in question.
          */
         loadPointer: {
-            (source: Core.Node, pointerName: string, callback: Common.ResultCallback<Core.DataObject>): void;
+            (source: Core.Node, pointerName: string, callback: GmeCommon.ResultCallback<Core.DataObject>): void;
             (source: Core.Node, pointerName: string): Promise<Core.DataObject>;
         }
         /**
@@ -1694,8 +1697,8 @@ declare namespace Classes {
          * @return 
          */
         loadRoot: {
-            (metadataHash: Common.MetadataHash, callback: Common.ResultCallback<Core.DataObject>): void;
-            (metadataHash: Common.MetadataHash): Promise<Core.DataObject>;
+            (metadataHash: GmeCommon.MetadataHash, callback: GmeCommon.ResultCallback<Core.DataObject>): void;
+            (metadataHash: GmeCommon.MetadataHash): Promise<Core.DataObject>;
         }
         /**
          * TODO
@@ -1703,7 +1706,7 @@ declare namespace Classes {
          * @return 
          */
         loadSubTree: {
-            (node: Core.Node, callback: Common.ResultCallback<Core.DataObject>): void;
+            (node: Core.Node, callback: GmeCommon.ResultCallback<Core.DataObject>): void;
             (node: Core.Node): Promise<Core.DataObject>;
         }
         /**
@@ -1712,8 +1715,8 @@ declare namespace Classes {
          * @return 
          */
         loadTree: {
-            (rootHash: Common.MetadataHash, callback: Common.ResultCallback<Core.DataObject>): void;
-            (rootHash: Common.MetadataHash): Promise<Core.DataObject>;
+            (rootHash: GmeCommon.MetadataHash, callback: GmeCommon.ResultCallback<Core.DataObject>): void;
+            (rootHash: GmeCommon.MetadataHash): Promise<Core.DataObject>;
         }
         /**
          * TODO
@@ -1732,7 +1735,7 @@ declare namespace Classes {
          * @param node the node in question.
          * @return 
          */
-        removeLibrary(node: Core.Node, name: Common.Name): void;
+        removeLibrary(node: Core.Node, name: GmeCommon.Name): void;
         /**
          * TODO
          * @param node the node in question.
@@ -1744,19 +1747,19 @@ declare namespace Classes {
          * @param node the node in question.
          * @return 
          */
-        setAspectMetaTarget(node: Core.Node, name: Common.Name, target: Core.Node): undefined | Error;
+        setAspectMetaTarget(node: Core.Node, name: GmeCommon.Name, target: Core.Node): undefined | Error;
         /**
          * TODO
          * @param node the node in question.
          * @return 
          */
-        setAttribute(node: Core.Node, name: Common.Name, value: Common.InAttr): undefined | Error;
+        setAttribute(node: Core.Node, name: GmeCommon.Name, value: GmeCommon.InAttr): undefined | Error;
         /**
          * TODO
          * @param node the node in question.
          * @return 
          */
-        setAttributeMeta(node: Core.Node, name: Common.Name, rule: MetaRule): undefined | Error;
+        setAttributeMeta(node: Core.Node, name: GmeCommon.Name, rule: MetaRule): undefined | Error;
         /**
          * TODO
          * @param node the node in question.
@@ -1780,14 +1783,14 @@ declare namespace Classes {
          * @param node the node in question.
          * @return 
          */
-        setConstraint(node: Core.Node, name: Common.Name, constraint: Core.Constraint): undefined | Error;
+        setConstraint(node: Core.Node, name: GmeCommon.Name, constraint: Core.Constraint): undefined | Error;
         /**
          * TODO
          * @param node the node in question.
          * @return 
          */
         setGuid: {
-            (node: Core.Node, guid: Core.GUID, callback: Common.ResultCallback<Core.DataObject>): undefined | Error;
+            (node: Core.Node, guid: Core.GUID, callback: GmeCommon.ResultCallback<Core.DataObject>): undefined | Error;
             (node: Core.Node, guid: Core.GUID): Promise<Core.DataObject>;
         }
         /**
@@ -1798,7 +1801,7 @@ declare namespace Classes {
         setMemberAttribute: {
             (node: Core.Node, setName: string, memberPath: string,
                 SVGPathSegLinetoHorizontalAbsme: string,
-                value?: Common.InAttr): undefined | Error;
+                value?: GmeCommon.InAttr): undefined | Error;
         }
         /**
          * TODO
@@ -1806,13 +1809,13 @@ declare namespace Classes {
          * @return 
          */
         setMemberRegistry(node: Core.Node, setName: string, memberPath: string, regName: string,
-            value?: Common.InAttr): undefined | Error;
+            value?: GmeCommon.InAttr): undefined | Error;
         /**
          * TODO
          * @param node the node in question.
          * @return 
          */
-        setPointer(node: Core.Node, name: Common.Name, target: Core.Node | null): undefined | Error;
+        setPointer(node: Core.Node, name: GmeCommon.Name, target: Core.Node | null): undefined | Error;
         /**
          * TODO
          * @param node the node in question.
@@ -1825,14 +1828,14 @@ declare namespace Classes {
          * @param node the node in question.
          * @return 
          */
-        setPointerMetaTarget(node: Core.Node, name: Common.Name, target: Core.Node, min?: number, max?: number): undefined | Error;
+        setPointerMetaTarget(node: Core.Node, name: GmeCommon.Name, target: Core.Node, min?: number, max?: number): undefined | Error;
         /** 
          * TODO
          * Get the assigned registry 
          * @param node the node in question.
          * @return 
          */
-        setRegistry(node: Core.Node, name: Common.Name, value: Common.InAttr): undefined | Error;
+        setRegistry(node: Core.Node, name: GmeCommon.Name, value: GmeCommon.InAttr): undefined | Error;
         /**
          * TODO
          * the visitation function will be called for
@@ -1846,13 +1849,13 @@ declare namespace Classes {
             // takes a callback & returning *no* promise
             (node: Core.Node,
                 options: TraversalOptions,
-                visitFn: (node: Core.Node, finished: Common.VoidFn) => void,
-                callback: Common.ResultCallback<Core.DataObject>)
+                visitFn: (node: Core.Node, finished: GmeCommon.VoidFn) => void,
+                callback: GmeCommon.ResultCallback<Core.DataObject>)
                 : void;
             // takes *no* callback & returns a promise
             (node: Core.Node,
                 options: TraversalOptions,
-                visitFn: (node: Core.Node, finished: Common.VoidFn) => void)
+                visitFn: (node: Core.Node, finished: GmeCommon.VoidFn) => void)
                 : Promise<void>;
         }
         /**
@@ -1867,9 +1870,9 @@ declare namespace Classes {
          * @return 
          */
         updateLibrary: {
-            (node: Core.Node, name: Common.Name, libraryRootHash: Common.MetadataHash,
-                libraryInfo: LibraryInfo, callback: Common.ResultCallback<Core.DataObject>): void;
-            (node: Core.Node, name: Common.Name, libraryRootHash: Common.MetadataHash,
+            (node: Core.Node, name: GmeCommon.Name, libraryRootHash: GmeCommon.MetadataHash,
+                libraryInfo: LibraryInfo, callback: GmeCommon.ResultCallback<Core.DataObject>): void;
+            (node: Core.Node, name: GmeCommon.Name, libraryRootHash: GmeCommon.MetadataHash,
                 libraryInfo: LibraryInfo): Promise<Core.DataObject>;
         }
     }
@@ -1878,28 +1881,446 @@ declare namespace Classes {
 
 
     export interface ProjectInterface {
+        /**
+            *
+            * @param {string} projectId - Id of project to be opened.
+            * @param {object} storageObjectsAccessor - Exposes loadObject towards the database.
+            * @param {GmeLogger} mainLogger - Logger instance from instantiator.
+            * @param {GmeConfig} gmeConfig
+            * @alias ProjectInterface
+            * @constructor
+            */
+        constructor(projectId: string, storageObjectsAccessor: any, mainLogger: Global.GmeLogger, gmeConfig: GmeConfig.GmeConfig): void;
+        /**
+         * Unique ID of project, built up by the ownerId and projectName.
+         * @example
+         * 'guest+TestProject', 'organization+TestProject2'
+         */
+        projectId: string;
+        projectName: GmeCommon.Name;
+        CONSTANTS: GmeCommon.Dictionary<string>;
+        ID_NAME: string;
+        logger: Global.GmeLogger;
+        // projectCache: ProjectCache;
 
+        // Functions forwarded to project cache.
+        /**
+             * Inserts the given object to project-cache.
+             *
+             * @param {module:Storage~CommitObject|module:Core~ObjectData} obj - Object to be inserted in database.
+             * @param {Object.<module:Core~ObjectHash, module:Core~ObjectData>} [stackedObjects] - When used by the core, inserts between persists are stored here.
+             * @func
+             * @private
+        */
+        insertObject(obj: GmeStorage.CommitObject, stackedObjects: GmeCommon.Dictionary<Core.DataObject>): void;
+        /**
+         * Try to create the full object from the patch object by looking for the base object in the cache.
+         * If the base has been found it applies the patch and inserts the result. If any step fails it simply
+         * ignores the insert.
+         *
+         * @param {module:Storage~CommitObject|module:Core~ObjectData} obj - Object to be inserted in database.
+         * @func
+         * @private
+         */
+        insertPatchObject(obj: GmeStorage.CommitObject | Core.DataObject): void;
+
+        /**
+         * Loads the object with hash key from the database or
+         * directly from the cache if recently loaded.
+         *
+         * @param {string} key - Hash of object to load.
+         * @param {ProjectInterface~loadObjectCallback} callback - Invoked when object is loaded.
+         * @func
+         */
+        loadObject(key: string, callback: GmeCommon.LoadObjectCallback): void;
+        /**
+         * Collects the objects from the server and pre-loads them into the cache
+         * making the load of multiple objects faster.
+         *
+         * @param {string} rootKey - Hash of the object at the entry point of the paths.
+         * @param {string[]} paths - List of paths that needs to be pre-loaded.
+         * @param {function} callback - Invoked when objects have been collected.
+         * @func
+         */
+        loadPaths(rootKey: GmeCommon.MetadataHash, paths: GmeCommon.Path[], callback: GmeCommon.ResultCallback<any>): void;
+        /**
+         * Makes a commit to data base. Based on the root hash and commit message a new
+         * {@link module:Storage.CommitObject} (with returned hash)
+         * is generated and insert together with the core objects to the database on the server.
+         *
+         * @example
+         * var persisted = core.persist(rootNode);
+         *
+         * project.makeCommit('master', ['#thePreviousCommitHash'], persisted.rootHash, persisted.objects, 'new commit')
+         *   .then(function (result) {
+         *     // result = {
+         *     //   status: 'SYNCED',
+         *     //   hash: '#thisCommitHash'
+         *     // }
+         *   })
+         *   .catch(function (error) {
+         *     // error.message = 'Not authorized to read project: guest+project'
+         *   });
+         * @example
+         * project.makeCommit('master', ['#notPreviousCommitHash'], persisted.rootHash, persisted.objects, 'new commit')
+         *   .then(function (result) {
+         *     // result = {
+         *     //   status: 'FORKED',
+         *     //   hash: '#thisCommitHash'
+         *     // }
+         *   })...
+         * @example
+         * project.makeCommit(null, ['#anExistingCommitHash'], persisted.rootHash, persisted.objects, 'new commit')
+         *   .then(function (result) {
+         *     // result = {
+         *     //   hash: '#thisCommitHash'
+         *     // }
+         *   })...
+         * @example
+         * project.makeCommit('master', ['#aPreviousCommitHash'], previousRootHash, {}, 'just adding a commit to master')
+         *   .then(function (result) {
+         *     // result = {
+         *     //   status: 'SYNCED',
+         *     //   hash: '#thisCommitHash'
+         *     // }
+         *   })...
+         * @param {string} branchName - Name of branch to update (none if null).
+         * @param {module:Storage~CommitHash[]} parents - Parent commit hashes.
+         * @param {module:Core~ObjectHash} rootHash - Hash of root object.
+         * @param {module:Core~DataObject} coreObjects - Core objects associated with the commit.
+         * @param {string} msg='n/a' - Commit message.
+         * @param {function} [callback] - If provided no promise will be returned.
+         * @async
+         * @return {external:Promise}  On success the promise will be resolved with
+         * {@link module:Storage~CommitResult} <b>result</b>.<br>
+         * On error the promise will be rejected with {Error} <b>error</b>.
+         */
+        makeCommit: {
+            (branchName: GmeCommon.Name, parents: GmeStorage.CommitHash,
+                rootHash: Core.ObjectHash, coreObjects: Core.DataObject,
+                msg: string, callback: GmeCommon.ResultCallback<GmeStorage.CommitResult>): void;
+            (branchName: GmeCommon.Name, parents: GmeStorage.CommitHash,
+                rootHash: Core.ObjectHash, coreObjects: Core.DataObject,
+                msg: string): Promise<GmeStorage.CommitResult>;
+        };
+        /**
+         * Updates the head of the branch.
+         * @param {string} branchName - Name of branch to update.
+         * @param {module:Storage~CommitHash} newHash - New commit hash for branch head.
+         * @param {module:Storage~CommitHash} oldHash - Current state of the branch head inside the database.
+         * @param {function} [callback] - if provided no promise will be returned.
+         *
+         * @return {external:Promise}  On success the promise will be resolved with
+         * {@link module:Storage~CommitResult} <b>result</b>.<br>
+         * On error the promise will be rejected with {@link Error} <b>error</b>.
+         */
+        setBranchHash: {
+            (branchName: GmeCommon.Name, newHash: GmeStorage.CommitHash, oldHash: GmeStorage.CommitHash,
+                callback: GmeCommon.ResultCallback<GmeStorage.CommitResult>): void;
+            (branchName: GmeCommon.Name, newHash: GmeStorage.CommitHash, oldHash: GmeStorage.CommitHash):
+                Promise<GmeStorage.CommitResult>;
+        };
+        /**
+         * Retrieves the commit hash for the head of the branch.
+         * @param {string} branchName - Name of branch.
+         * @param {function} [callback] - if provided no promise will be returned.
+         *
+         * @return {external:Promise}  On success the promise will be resolved with
+         * {module:Storage~CommitHash} <b>branchHash</b>.<br>
+         * On error the promise will be rejected with {@link Error} <b>error</b>.
+         */
+        getBranchHash: {
+            (branchName: GmeCommon.Name, callback: GmeCommon.ResultCallback<GmeStorage.CommitHash>): void;
+            (branchName: GmeCommon.Name): Promise<GmeStorage.CommitHash>;
+        };
+        /**
+         * Creates a new branch with head pointing to the provided commit hash.
+         * @param {string} branchName - Name of branch to create.
+         * @param {module:Storage~CommitHash} newHash - New commit hash for branch head.
+         * @param {function} [callback] - if provided no promise will be returned.
+         *
+         * @return {external:Promise}  On success the promise will be resolved with
+         * {@link module:Storage~CommitResult} <b>result</b>.<br>
+         * On error the promise will be rejected with {@link Error} <b>error</b>.
+         */
+        createBranch: {
+            (branchName: GmeCommon.Name, newHash: GmeStorage.CommitHash,
+                callback: GmeCommon.ResultCallback<GmeStorage.CommitResult>): void;
+            (branchName: GmeCommon.Name, newHash: GmeStorage.CommitHash): Promise<GmeStorage.CommitResult>;
+        };
+        /**
+         * Deletes the branch.
+         * @param {string} branchName - Name of branch to create.
+         * @param {module:Storage~CommitHash} oldHash - Previous commit hash for branch head.
+         * @param {function} [callback] - if provided no promise will be returned.
+         *
+         * @return {external:Promise}  On success the promise will be resolved with
+         * {@link module:Storage~CommitResult} <b>result</b>.<br>
+         * On error the promise will be rejected with {@link Error} <b>error</b>.
+         */
+        deleteBranch: {
+            (branchName: GmeCommon.Name, oldHash: GmeStorage.CommitHash,
+                callback: GmeCommon.ResultCallback<GmeStorage.CommitResult>): void;
+            (branchName: GmeCommon.Name, oldHash: GmeStorage.CommitHash): Promise<GmeStorage.CommitResult>;
+        };
+        /**
+         * Retrieves all branches and their current heads within the project.
+         * @param {function} [callback] - if provided no promise will be returned.
+         *
+         * @return {external:Promise}  On success the promise will be resolved with
+         * Object.<string, {@link module:Storage~CommitHash}> <b>result</b>.<br>
+         * On error the promise will be rejected with {@link Error} <b>error</b>.
+         */
+        getBranches: {
+            (callback: GmeCommon.ResultCallback<GmeStorage.CommitHash>): void;
+            (): Promise<GmeStorage.CommitHash>;
+        }
+        /**
+         * Retrieves an array of commits starting from a branch(es) and/or commitHash(es).
+         * <br> The result is ordered by the rules (applied in order)
+         * <br> 1. Descendants are always returned before their ancestors.
+         * <br> 2. By their timestamp.
+         * @param {string|module:Storage~CommitHash|Array} start - Branch name, commit hash or array of these.
+         * @param {number} number - Number of commits to load.
+         * @param {function} [callback] - if provided no promise will be returned.
+         *
+         * @return {external:Promise}  On success the promise will be resolved with
+         * Array.<{@link module:Storage~CommitObject}> <b>result</b>.<br>
+         * On error the promise will be rejected with {@link Error} <b>error</b>.
+         */
+        getHistory: {
+            (start: string | GmeStorage.CommitHash | string[], number: number,
+                callback: GmeCommon.ResultCallback<GmeStorage.CommitObject>): void;
+            (start: string | GmeStorage.CommitHash | string[], number: number):
+                Promise<GmeStorage.CommitObject>;
+        }
+        /**
+         * Retrieves and array of the latest (sorted by timestamp) commits for the project.
+         * If timestamp is given it will get <b>number</b> of commits strictly before <b>before</b>.
+         * If commit hash is specified that commit will be included too.
+         * <br> N.B. due to slight time differences on different machines, ancestors may be returned before
+         * their descendants. Unless looking for 'headless' commits 'getHistory' is the preferred method.
+         * @param {number|module:Storage~CommitHash} before - Timestamp or commitHash to load history from.
+         * @param {number} number - Number of commits to load.
+         * @param {function} [callback] - if provided no promise will be returned.
+         *
+         * @return {external:Promise}  On success the promise will be resolved with
+         * Array.<{@link module:Storage~CommitObject}> <b>result</b>.<br>
+         * On error the promise will be rejected with {@link Error} <b>error</b>.
+         */
+        getCommits: {
+            (before: number | GmeStorage.CommitHash, number: number, callback: GmeCommon.ResultCallback<GmeStorage.CommitObject>): void;
+            (before: number | GmeStorage.CommitHash, number: number): Promise<GmeStorage.CommitObject>;
+        };
+        /**
+         * Creates a new tag pointing to the provided commit hash.
+         * @param {string} tagName - Name of tag to create.
+         * @param {module:Storage~CommitHash} commitHash - Commit hash tag will point to.
+         * @param {function} [callback] - if provided no promise will be returned.
+         *
+         * @return {external:Promise}  On success the promise will be resolved with nothing.<br>
+         * On error the promise will be rejected with {@link Error} <b>error</b>.
+         */
+        createTag: {
+            (tagName: GmeCommon.Name, commitHash: GmeStorage.CommitHash, callback: GmeCommon.ResultCallback<void>): void;
+            (tagName: GmeCommon.Name, commitHash: GmeStorage.CommitHash): Promise<void>;
+        };
+        /**
+         * Deletes the given tag.
+         * @param {string} tagName - Name of tag to delete.
+         * @param {function} [callback] - if provided no promise will be returned.
+         *
+         * @return {external:Promise}  On success the promise will be resolved with nothing.<br>
+         * On error the promise will be rejected with {@link Error} <b>error</b>.
+         */
+        deleteTag: {
+            (tagName: GmeCommon.Name, callback: GmeCommon.ResultCallback<void>): void;
+            (tagName: GmeCommon.Name): Promise<void>;
+        };
+        /**
+         * Retrieves all tags and their commits hashes within the project.
+         * @param {function} [callback] - if provided no promise will be returned.
+         *
+         * @return {external:Promise}  On success the promise will be resolved with
+         * Object.<string, {@link module:Storage~CommitHash}> <b>result</b>.<br>
+         * On error the promise will be rejected with {@link Error} <b>error</b>.
+         */
+        getTags: {
+            (callback: GmeCommon.ResultCallback<void>): void;
+            (): Promise<void>;
+        };
+        /**
+         * Retrieves the common ancestor of two commits. If no ancestor exists it will result in an error.
+         *
+         * @param {module:Storage~CommitHash} commitA - Commit hash.
+         * @param {module:Storage~CommitHash} commitB - Commit hash.
+         * @param {function} [callback] - if provided no promise will be returned.
+         *
+         * @return {external:Promise}  On success the promise will be resolved with
+         * {@link module:Storage~CommitHash} <b>commonCommitHash</b>.<br>
+         * On error the promise will be rejected with {@link Error} <b>error</b>.
+         */
+        getCommonAncestorCommit: {
+            (commitA: GmeStorage.CommitHash, commitB: GmeStorage.CommitHash, callback: GmeCommon.ResultCallback<GmeStorage.CommitHash>): void;
+            (commitA: GmeStorage.CommitHash, commitB: GmeStorage.CommitHash): Promise<GmeStorage.CommitHash>;
+        };
     }
 
 
-    export type ThenCallback = Common.VoidCallback;
-    export type CatchCallback = Common.ErrorOnlyCallback;
 
-    export interface Promisable {
-        then(callback: ThenCallback): Promisable;
-        catch(callback: CatchCallback): Promisable;
+    export class Project {
+        /**
+         * Unique ID of project, built up by the ownerId and projectName.
+         */
+        projectId: string;
+
+        /**
+         * Creates a new branch with head pointing to the provided commit hash.
+         */
+        createBranch: {
+            /** Name of branch to create. */
+            (branchName: string, newHash: GmeStorage.CommitHash, callback: GmeCommon.ResultCallback<GmeStorage.CommitResult>): void;
+            (branchName: string, newHash: GmeStorage.CommitHash, ): Promise<GmeStorage.CommitResult>;
+        }
+        /**
+         * Creates a new tag pointing to the provided commit hash.
+         */
+        createTag: {
+            (tagName: string, commitHash: GmeStorage.CommitHash, callback: GmeStorage.ErrorOnlyCallback): void;
+            (tagName: string, commitHash: GmeStorage.CommitHash): Promise<GmeStorage.ErrorOnlyCallback>;
+        }
+        /**
+        * Deletes the given branch.
+        */
+        deleteBranch: {
+            /** Name of branch to delete. */
+            (branchName: string, oldHash: GmeStorage.CommitHash, callback: GmeCommon.ResultCallback<GmeStorage.CommitResult>): void;
+            (branchName: string, oldHash: GmeStorage.CommitHash, ): Promise<GmeStorage.CommitResult>;
+        }
+        /**
+         * Deletes the given tag.
+         */
+        deleteTag: {
+            /** Name of tag to delete. */
+            (tagName: string, callback: GmeStorage.ErrorOnlyCallback): void;
+            (tagname: string): Promise<void>;
+        }
+        /**
+         * Retrieves all branches and their current heads within the project.
+         */
+        getBranches: {
+            /** On success the callback will run with Object.module:Storage~CommitHash result. */
+            (callback: GmeStorage.CommitHashCallback): void;
+            /** On success the promise will be resolved with Object.module:Storage~CommitHash> result. */
+            (): Promise<GmeStorage.CommitHash>;
+        }
+        /**
+         * Retrieves the commit hash for the head of the branch.
+         */
+        getBranchHash: {
+            (branchName: string, callback: GmeStorage.CommitHashCallback): void;
+            (branchName: string): Promise<GmeStorage.CommitHash>;
+        }
+        /**
+         * Retrieves and array of the latest 
+         * (sorted by timestamp) commits for the project. 
+         * If timestamp is given it will get number 
+         * of commits strictly before before. 
+         * If commit hash is specified that 
+         * commit will be included too. 
+         * n.b. due to slight time differences on different machines, 
+         * ancestors may be returned before their descendants. 
+         * Unless looking for 'headless' commits 
+         * 'getHistory' is the preferred method.
+         */
+        getCommits: {
+            (before: number | GmeStorage.CommitHash, number: number, callback: GmeCommon.ResultCallback<GmeStorage.CommitObject>): void;
+            (before: number | GmeStorage.CommitHash, number: number): Promise<GmeStorage.CommitObject>;
+        }
+        /**
+         * Retrieves the Class ancestor of two commits. 
+         * If no ancestor exists it will result in an error.
+         */
+        getClassAncestorCommit: {
+            (commitA: GmeStorage.CommitHash, commitB: GmeStorage.CommitHash, callback: GmeStorage.CommitHashCallback): void;
+            (commitA: GmeStorage.CommitHash, commitB: GmeStorage.CommitHash): Promise<GmeStorage.CommitHash>;
+        }
+        /**
+         * Retrieves an array of commits starting from a branch(es) and/or commitHash(es). 
+         * The result is ordered by the rules (applied in order) 
+         *  1. Descendants are always returned before their ancestors.
+         *  2. By their timestamp.
+         */
+        getHistory: {
+            (start: GmeCommon.ProjectStart, number: number, callback: GmeCommon.ResultCallback<GmeStorage.CommitObject>): void;
+            (start: GmeCommon.ProjectStart, number: number): Promise<GmeStorage.CommitObject>;
+        }
+        /**
+         * Retrieves all tags and their commits hashes within the project.
+         */
+        getTags: {
+            (callback: GmeStorage.CommitHashCallback): void;
+            (): Promise<GmeStorage.CommitHash>;
+        }
+
+        loadObject: {
+            /** Hash of object to load. */
+            (key: string, callback: GmeCommon.ResultCallback<GmeStorage.CommitObject>): void;
+            (key: string): Promise<GmeStorage.CommitObject>;
+        }
+        /** 
+         * Collects the objects from the server and pre-loads 
+         * them into the cache making the load of multiple objects faster.
+         * 
+         * @param rootKey Hash of the object at the entry point of the paths.
+         * @param paths List of paths that needs to be pre-loaded.
+         */
+        loadPaths: {
+            (rootKey: string, paths: string[], callback: GmeStorage.ErrorOnlyCallback): void;
+            (rootKey: string, paths: string[]): Promise<GmeStorage.ErrorOnlyCallback>;
+        }
+
+        /**
+         * Makes a commit to data base. 
+         * Based on the root hash and commit message a 
+         * new module:Storage.CommitObject (with returned hash) 
+         * is generated and insert together with the 
+         * core objects to the database on the server.
+         */
+        makeCommit: {
+            (branchName: string, parents: GmeStorage.CommitHash[],
+                rootHash: Core.ObjectHash, coreObjects: Core.DataObject,
+                msg: string, callback: GmeCommon.ResultCallback<GmeStorage.CommitResult>): void;
+            (branchName: string, parents: GmeStorage.CommitHash[],
+                rootHash: Core.ObjectHash, coreObjects: Core.DataObject,
+                msg: string): Promise<GmeStorage.CommitResult>;
+        }
+        /**
+         * Updates the head of the branch.
+         */
+        setBranchHash: {
+            (branchName: string, newHash: GmeStorage.CommitHash,
+                oldHash: GmeStorage.CommitHash,
+                callback: GmeCommon.ResultCallback<GmeStorage.CommitResult>): void;
+            (branchName: string, newHash: GmeStorage.CommitHash,
+                oldHash: GmeStorage.CommitHash): Promise<GmeStorage.CommitResult>;
+        }
     }
+}
 
+
+declare namespace GmePlugin {
     /**
     The base plugin object from which all plugins should inherit.
     */
-    export interface Base {
+    class PluginBase {
+        constructor();
 
         activeNode: Core.Node;
         activeSelection: Core.Node[];
         blobClient: Blobs.BlobClient;
-        core: Core;
-        gmeConfig: Config.GmeConfig;
+        core: GmeClasses.Core;
+        gmeConfig: GmeConfig.GmeConfig;
         isConfigured: boolean;
         logger: Global.GmeLogger;
         /**
@@ -1922,26 +2343,27 @@ declare namespace Classes {
          * For example, if a project has a library A with a library B. The possible namespaces are:
          * '', 'A' and 'A.B'.
          */
+
         namespace: string;
         notificationHandlers: any[];
-        pluginMetadata: Common.Metadata;
-        project: ProjectInterface;
-        result: Result;
+        pluginMetadata: GmeCommon.Metadata;
+        project: GmeClasses.ProjectInterface;
+        result: GmeClasses.Result;
         rootNode: Core.Node;
 
         addCommitToResult(status: string): void;
         baseIsMeta(node: any): boolean;
 
-        configure(config: Config.GmeConfig): void;
+        configure(config: GmeConfig.GmeConfig): void;
         createMessage(node: any, message: string, serverity: string): void;
         /**
          * Gets the configuration structure for the plugin.
          * The ConfigurationStructure defines the configuration for the plugin
          * and will be used to populate the GUI when invoking the plugin from webGME.
          */
-        getConfigStructure(): Config.ConfigItem[];
-        getCurrentConfig(): Config.GmeConfig;
-        getDefaultConfig(): Config.GmeConfig;
+        getConfigStructure(): GmeConfig.ConfigItem[];
+        getCurrentConfig(): GmeConfig.GmeConfig;
+        getDefaultConfig(): GmeConfig.GmeConfig;
         /**
          * Gets the description of the plugin.
          */
@@ -1956,7 +2378,7 @@ declare namespace Classes {
          * Gets the semantic version (semver.org) of the plugin.
          */
         getVersion(): string;
-        initialize(logger: Global.GmeLogger, blobClient: Blobs.BlobClient, gmeConfig: Config.GmeConfig): void;
+        initialize(logger: Global.GmeLogger, blobClient: Blobs.BlobClient, gmeConfig: GmeConfig.GmeConfig): void;
         isInvalidActiveNode(pluginId: any): any;
         isMetaTypeOf(node: any, metaNode: any): boolean;
         /**
@@ -1977,210 +2399,16 @@ declare namespace Classes {
      
           @param {function(string, plugin.PluginResult)} handler - the result handler
          */
-        main(callback: Common.ResultCallback<any>): void;
-        save(message?: string): Promisable; // returns a promise?
+        main(callback: GmeCommon.ResultCallback<GmeClasses.Result>): void;
+        save(message?: string): GmeCommon.Promisable; // returns a promise?
         sendNotification: {
-            (message: string, callback: Common.ResultCallback<Core.DataObject>): void;
+            (message: string, callback: GmeCommon.ResultCallback<Core.DataObject>): void;
             (message: string): Promise<Core.DataObject>;
         }
-        setCurrentConfig(newConfig: Config.GmeConfig): void;
+        setCurrentConfig(newConfig: GmeConfig.GmeConfig): void;
         updateMeta(generatedMeta: any): void;
         updateSuccess(value: boolean, message: TemplateStringsArray): void;
     }
-
-
-    export type ProjectStart = string | Storage.CommitHash | string[] | Storage.CommitHash[];
-    export type LoadObjectCallback = Storage.CommitObjectCallback;
-
-    export class Project {
-        /**
-         * Unique ID of project, built up by the ownerId and projectName.
-         */
-        projectId: string;
-
-        /**
-         * Creates a new branch with head pointing to the provided commit hash.
-         */
-        createBranch: {
-            /** Name of branch to create. */
-            (branchName: string, newHash: Storage.CommitHash, callback: Storage.CommitResultCallback): void;
-            (branchName: string, newHash: Storage.CommitHash, ): Promise<Storage.CommitResult>;
-        }
-        /**
-         * Creates a new tag pointing to the provided commit hash.
-         */
-        createTag: {
-            (tagName: string, commitHash: Storage.CommitHash, callback: Storage.ErrorOnlyCallback): void;
-            (tagName: string, commitHash: Storage.CommitHash): Promise<Storage.ErrorOnlyCallback>;
-        }
-        /**
-        * Deletes the given branch.
-        */
-        deleteBranch: {
-            /** Name of branch to delete. */
-            (branchName: string, oldHash: Storage.CommitHash, callback: Storage.CommitResultCallback): void;
-            (branchName: string, oldHash: Storage.CommitHash, ): Promise<Storage.CommitResult>;
-        }
-        /**
-         * Deletes the given tag.
-         */
-        deleteTag: {
-            /** Name of tag to delete. */
-            (tagName: string, callback: Storage.ErrorOnlyCallback): void;
-            (tagname: string): Promise<void>;
-        }
-        /**
-         * Retrieves all branches and their current heads within the project.
-         */
-        getBranches: {
-            /** On success the callback will run with Object.module:Storage~CommitHash result. */
-            (callback: Storage.CommitHashCallback): void;
-            /** On success the promise will be resolved with Object.module:Storage~CommitHash> result. */
-            (): Promise<Storage.CommitHash>;
-        }
-        /**
-         * Retrieves the commit hash for the head of the branch.
-         */
-        getBranchHash: {
-            (branchName: string, callback: Storage.CommitHashCallback): void;
-            (branchName: string): Promise<Storage.CommitHash>;
-        }
-        /**
-         * Retrieves and array of the latest 
-         * (sorted by timestamp) commits for the project. 
-         * If timestamp is given it will get number 
-         * of commits strictly before before. 
-         * If commit hash is specified that 
-         * commit will be included too. 
-         * n.b. due to slight time differences on different machines, 
-         * ancestors may be returned before their descendants. 
-         * Unless looking for 'headless' commits 
-         * 'getHistory' is the preferred method.
-         */
-        getCommits: {
-            (before: number | Storage.CommitHash, number: number, callback: Storage.CommitObjectCallback): void;
-            (before: number | Storage.CommitHash, number: number): Promise<Storage.CommitObject>;
-        }
-        /**
-         * Retrieves the Class ancestor of two commits. 
-         * If no ancestor exists it will result in an error.
-         */
-        getClassAncestorCommit: {
-            (commitA: Storage.CommitHash, commitB: Storage.CommitHash, callback: Storage.CommitHashCallback): void;
-            (commitA: Storage.CommitHash, commitB: Storage.CommitHash): Promise<Storage.CommitHash>;
-        }
-        /**
-         * Retrieves an array of commits starting from a branch(es) and/or commitHash(es). 
-         * The result is ordered by the rules (applied in order) 
-         *  1. Descendants are always returned before their ancestors.
-         *  2. By their timestamp.
-         */
-        getHistory: {
-            (start: ProjectStart, number: number, callback: Storage.CommitObjectCallback): void;
-            (start: ProjectStart, number: number): Promise<Storage.CommitObject>;
-        }
-        /**
-         * Retrieves all tags and their commits hashes within the project.
-         */
-        getTags: {
-            (callback: Storage.CommitHashCallback): void;
-            (): Promise<Storage.CommitHash>;
-        }
-
-        loadObject: {
-            /** Hash of object to load. */
-            (key: string, callback: Storage.CommitObjectCallback): void;
-            (key: string): Promise<Storage.CommitObject>;
-        }
-        /** 
-         * Collects the objects from the server and pre-loads 
-         * them into the cache making the load of multiple objects faster.
-         * 
-         * @param rootKey Hash of the object at the entry point of the paths.
-         * @param paths List of paths that needs to be pre-loaded.
-         */
-        loadPaths: {
-            (rootKey: string, paths: string[], callback: Storage.ErrorOnlyCallback): void;
-            (rootKey: string, paths: string[]): Promise<Storage.ErrorOnlyCallback>;
-        }
-
-        /**
-         * Makes a commit to data base. 
-         * Based on the root hash and commit message a 
-         * new module:Storage.CommitObject (with returned hash) 
-         * is generated and insert together with the 
-         * core objects to the database on the server.
-         */
-        makeCommit: {
-            (branchName: string, parents: Storage.CommitHash[],
-                rootHash: Core.ObjectHash, coreObjects: Core.DataObject,
-                msg: string, callback: Storage.CommitResultCallback): void;
-            (branchName: string, parents: Storage.CommitHash[],
-                rootHash: Core.ObjectHash, coreObjects: Core.DataObject,
-                msg: string): Promise<Storage.CommitResult>;
-        }
-        /**
-         * Updates the head of the branch.
-         */
-        setBranchHash: {
-            (branchName: string, newHash: Storage.CommitHash,
-                oldHash: Storage.CommitHash,
-                callback: Storage.CommitResultCallback): void;
-            (branchName: string, newHash: Storage.CommitHash,
-                oldHash: Storage.CommitHash): Promise<Storage.CommitResult>;
-        }
-
-
-    }
-
-
-}
-
-declare namespace GmePlugin {
-    class PluginBase implements Classes.Base {
-        constructor();
-
-        activeNode: Core.Node;
-        activeSelection: Core.Node[];
-        blobClient: Blobs.BlobClient;
-        core: Classes.Core;
-        gmeConfig: Config.GmeConfig;
-        isConfigured: boolean;
-        logger: Global.GmeLogger;
-        META: any;
-        namespace: string;
-        notificationHandlers: any[];
-        pluginMetadata: Common.Metadata;
-        project: Classes.ProjectInterface;
-        result: Classes.Result;
-        rootNode: Core.Node;
-
-        addCommitToResult(status: string): void;
-        baseIsMeta(node: any): boolean;
-        configure(config: Config.GmeConfig): void;
-        createMessage(node: any, message: string, serverity: string): void;
-        getConfigStructure(): any;
-        getCurrentConfig(): Config.GmeConfig;
-        getDefaultConfig(): Config.GmeConfig;
-        getDescription(): string;
-        getMetadata(): any;
-        getMetaType(node: any): any;
-        getName(): string;
-        getVersion(): string;
-        initialize(logger: Global.GmeLogger, blobClient: Blobs.BlobClient, gmeConfig: Config.GmeConfig): void;
-        isInvalidActiveNode(pluginId: any): any;
-        isMetaTypeOf(node: any, metaNode: any): boolean;
-        main(callback: Common.ResultCallback<Classes.Result>): void;
-        save(message?: string): Classes.Promisable;
-        sendNotification: {
-            (message: string, callback: Common.ResultCallback<Classes.Result>): void;
-            (message: string): Promise<Core.DataObject>;
-        }
-        setCurrentConfig(newConfig: Config.GmeConfig): void;
-        updateMeta(generatedMeta: any): void;
-        updateSuccess(value: boolean, message: TemplateStringsArray): void;
-    }
-
 }
 
 declare namespace Global {
@@ -2191,13 +2419,13 @@ declare namespace Global {
         configurable: boolean;
     }
     interface WebGmeGlobal {
-        gmeConfig: Config.GmeConfig;
-        getConfig(): Config.GmeConfig;
+        gmeConfig: GmeConfig.GmeConfig;
+        getConfig(): GmeConfig.GmeConfig;
 
         State?: State;
-        PanelManager?: Panel.PanelManager;
+        PanelManager?: GmePanel.PanelManager;
         KeyboardManager?: KeyboardManager;
-        LayoutManager?: Panel.LayoutManager;
+        LayoutManager?: GmePanel.LayoutManager;
         Toolbar?: Toolbar.Toolbar;
         userInfo?: UserInfo;
         history?: History;
@@ -2220,15 +2448,15 @@ declare namespace Global {
         set(update: State): void;
 
         registerActiveBranchName(branchName: string): void;
-        registerActiveCommit(activeCommitHash: Common.MetadataHash): void;
+        registerActiveCommit(activeCommitHash: GmeCommon.MetadataHash): void;
         registerActiveVisualizer(vizualizer: Visualize.Visualizer): void;
         registerActiveSelection(selection: string[]): void;
         registerSuppressVisualizerFromNode(register: boolean): void;
 
-        registerActiveObject(nodePath: Common.Path): void;
+        registerActiveObject(nodePath: GmeCommon.Path): void;
         getActiveObject(): any;
 
-        registerLayout(layout: Panel.Layout): void;
+        registerLayout(layout: GmePanel.Layout): void;
 
         clear(options?: StateOptions): void;
         toJSON(): any;
@@ -2326,7 +2554,7 @@ declare namespace Visualize {
     }
 }
 
-declare namespace Panel {
+declare namespace GmePanel {
 
     class IActivePanel {
         setActive(isActive: boolean): void;
@@ -2336,8 +2564,8 @@ declare namespace Panel {
     }
 
     class Logger {
-        createLogger(name: string, options: Config.LogOptions): Logger;
-        createWithGmeConfig(name: string, gmeConfig: Config.GmeConfig): Logger;
+        createLogger(name: string, options: GmeConfig.LogOptions): Logger;
+        createWithGmeConfig(name: string, gmeConfig: GmeConfig.GmeConfig): Logger;
     }
     interface Options {
         LOGGER_INSTANCE_NAME: string;
@@ -2370,7 +2598,7 @@ declare namespace Panel {
         setPanelReadOnly(readOnly: boolean): void;
     }
     class PanelManager {
-        constructor(client: GME.Client);
+        constructor(client: Gme.Client);
         getActivePanel(): PanelBase;
         setActivePanel(panel: PanelBase): void;
     }
@@ -2405,7 +2633,7 @@ declare namespace Panel {
     }
 }
 
-declare namespace Common {
+declare namespace GmeCommon {
 
     export interface Dictionary<T> {
         [propName: string]: T;
@@ -2430,8 +2658,8 @@ declare namespace Common {
     export class Pointer {
         constructor();
 
-        to: Common.NodeId;
-        from: Common.NodeId;
+        to: GmeCommon.NodeId;
+        from: GmeCommon.NodeId;
     }
 
     export type Path = string;
@@ -2482,7 +2710,7 @@ declare namespace Common {
         | DefBoolObject | DefAssetObject;
 
     export interface MetaCardRule {
-        items: Common.Path[];
+        items: GmeCommon.Path[];
         minItems: number[];
         maxItems: number[];
     }
@@ -2503,11 +2731,10 @@ declare namespace Common {
             };
         };
         aspects: {
-            filter: Common.Path[];
+            filter: GmeCommon.Path[];
         };
-        constraints: Common.Dictionary<Core.Constraint>;
+        constraints: GmeCommon.Dictionary<Core.Constraint>;
     }
-
 
     interface VoidCallback {
         (): void;
@@ -2519,14 +2746,32 @@ declare namespace Common {
         (err: Error | null, result: T): void;
     }
 
-    export interface Message {
+    interface Message {
         msg: string;
     }
 
+    type ThenCallback = GmeCommon.VoidCallback;
+    type CatchCallback = GmeCommon.ErrorOnlyCallback;
+
+    interface Promisable {
+        then(callback: ThenCallback): Promisable;
+        catch(callback: CatchCallback): Promisable;
+    }
+
+    type ProjectStart = string | GmeStorage.CommitHash | string[] | GmeStorage.CommitHash[];
+
+    /**
+     * Callback for loadObject.
+     *
+     * @callback ProjectInterface~loadObjectCallback
+     * @param {Error} err - If error occurred.
+     * @param {module:Storage~CommitObject|module:Core~ObjectData} object - Object loaded from database, e.g. a commit object.
+     */
+    type LoadObjectCallback = GmeCommon.ResultCallback<GmeStorage.CommitObject | Core.DataObject>;
 }
 
 
-declare namespace Util {
+declare namespace GmeUtil {
 
     class Canon {
         stringify(thing: any): string;
@@ -2571,59 +2816,59 @@ declare namespace Blobs {
          * @param name name of artifact.
          * @return the created artifact.
          */
-        createArtifact(name: Common.Name): Classes.Artifact;
+        createArtifact(name: GmeCommon.Name): GmeClasses.Artifact;
         /**
          * Retrieves the Artifact from the blob storage.
          * @param metadataHash hash associated with the artifact.
          * @return resolved with Artifact artifact.
          */
         getArtifact: {
-            (metadataHash: Common.MetadataHash, callback: Common.ResultCallback<Classes.Artifact>): void;
-            (metadataHash: Common.MetadataHash): Promise<Classes.Artifact>;
+            (metadataHash: GmeCommon.MetadataHash, callback: GmeCommon.ResultCallback<GmeClasses.Artifact>): void;
+            (metadataHash: GmeCommon.MetadataHash): Promise<GmeClasses.Artifact>;
         }
-        getMetadataURL(metadataHash: Common.MetadataHash): string;
-        getRelativeMetadataURL(metadataHash: Common.MetadataHash): string;
-        getViewURL(metadataHash: Common.MetadataHash, subpath: string): string;
-        getDownloadURL(metadataHash: Common.MetadataHash, subpath: string): string;
-        getRelativeDownloadURL(metadataHash: Common.MetadataHash, subpath: string): string;
-        getCreateURL(filename: Common.Name, isMetadata: boolean): string;
-        getRelativeCreateURL(filename: Common.Name, isMetadata: boolean): string;
+        getMetadataURL(metadataHash: GmeCommon.MetadataHash): string;
+        getRelativeMetadataURL(metadataHash: GmeCommon.MetadataHash): string;
+        getViewURL(metadataHash: GmeCommon.MetadataHash, subpath: string): string;
+        getDownloadURL(metadataHash: GmeCommon.MetadataHash, subpath: string): string;
+        getRelativeDownloadURL(metadataHash: GmeCommon.MetadataHash, subpath: string): string;
+        getCreateURL(filename: GmeCommon.Name, isMetadata: boolean): string;
+        getRelativeCreateURL(filename: GmeCommon.Name, isMetadata: boolean): string;
         getSubObject: {
-            (metadataHash: Common.MetadataHash, subpath: string, callback: Common.ResultCallback<Core.DataObject>): void;
-            (metadataHash: Common.MetadataHash, subpath: string): Promise<Core.DataObject>;
+            (metadataHash: GmeCommon.MetadataHash, subpath: string, callback: GmeCommon.ResultCallback<Core.DataObject>): void;
+            (metadataHash: GmeCommon.MetadataHash, subpath: string): Promise<Core.DataObject>;
         }
         getObject: {
-            (metadataHash: Common.MetadataHash, callback: Common.ResultCallback<Common.Content>, subpath: string): void;
-            (metadataHash: Common.MetadataHash, subpath: string): Promise<Common.Content>;
+            (metadataHash: GmeCommon.MetadataHash, callback: GmeCommon.ResultCallback<GmeCommon.Content>, subpath: string): void;
+            (metadataHash: GmeCommon.MetadataHash, subpath: string): Promise<GmeCommon.Content>;
         }
         getObjectAsString: {
-            (metadataHash: Common.MetadataHash, callback: Common.ResultCallback<Common.MetadataHash>): Common.ContentString;
-            (metadataHash: Common.MetadataHash): Promise<Common.ContentString>;
+            (metadataHash: GmeCommon.MetadataHash, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash>): GmeCommon.ContentString;
+            (metadataHash: GmeCommon.MetadataHash): Promise<GmeCommon.ContentString>;
         }
         getObjectAsJSON: {
-            (metadataHash: Common.MetadataHash, callback: Common.ResultCallback<JSON>): void;
-            (metadataHash: Common.MetadataHash): Promise<JSON>;
+            (metadataHash: GmeCommon.MetadataHash, callback: GmeCommon.ResultCallback<JSON>): void;
+            (metadataHash: GmeCommon.MetadataHash): Promise<JSON>;
         }
         getMetadata: {
-            (metadataHash: Common.MetadataHash, callback: Common.ResultCallback<Common.Metadata>): void;
-            (metadataHash: Common.MetadataHash): Promise<Common.Metadata>;
+            (metadataHash: GmeCommon.MetadataHash, callback: GmeCommon.ResultCallback<GmeCommon.Metadata>): void;
+            (metadataHash: GmeCommon.MetadataHash): Promise<GmeCommon.Metadata>;
         }
         getHumanSize(bytes: number, si: boolean): string;
         putFile: {
-            (name: Common.Name, data: Common.Payload, callback: Common.ResultCallback<Common.MetadataHash>): void;
-            (name: Common.Name, data: Common.Payload): Promise<Common.MetadataHash>;
+            (name: GmeCommon.Name, data: GmeCommon.Payload, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash>): void;
+            (name: GmeCommon.Name, data: GmeCommon.Payload): Promise<GmeCommon.MetadataHash>;
         }
         putMetadata: {
-            (metadataDescriptor: BlobMetadataDescriptor, callback: Common.ResultCallback<Common.MetadataHash>): void;
-            (metadataDescriptor: BlobMetadataDescriptor): Promise<Common.MetadataHash>;
+            (metadataDescriptor: BlobMetadataDescriptor, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash>): void;
+            (metadataDescriptor: BlobMetadataDescriptor): Promise<GmeCommon.MetadataHash>;
         }
         putFiles: {
-            (o: { [name: string]: Common.Payload }, callback: Common.ResultCallback<Common.MetadataHash[]>): void;
-            (o: { [name: string]: Common.Payload }): Promise<Common.MetadataHash[]>;
+            (o: { [name: string]: GmeCommon.Payload }, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash[]>): void;
+            (o: { [name: string]: GmeCommon.Payload }): Promise<GmeCommon.MetadataHash[]>;
         }
         saveAllArtifacts: {
-            (callback: Common.ResultCallback<Common.MetadataHash[]>): void;
-            (): Promise<Common.MetadataHash[]>;
+            (callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash[]>): void;
+            (): Promise<GmeCommon.MetadataHash[]>;
         }
     }
 
@@ -2699,94 +2944,94 @@ declare namespace Core {
     */
     export class Node {
         _id: string;
-        constructor(id: string, logger: Global.GmeLogger, state: any, storeNode: Common.ResultCallback<Storage>);
+        constructor(id: string, logger: Global.GmeLogger, state: any, storeNode: GmeCommon.ResultCallback<Storage>);
         constructor();
-        getNode(id: Common.NodeId, logger: Global.GmeLogger, state: any, storeNode: Common.ResultCallback<Storage>): Node;
+        getNode(id: GmeCommon.NodeId, logger: Global.GmeLogger, state: any, storeNode: GmeCommon.ResultCallback<Storage>): Node;
 
-        getParentId(): Common.NodeId;
-        getId(): Common.NodeId;
-        getRelid(): Common.RelId;
+        getParentId(): GmeCommon.NodeId;
+        getId(): GmeCommon.NodeId;
+        getRelid(): GmeCommon.RelId;
         getGuid(): GUID;
-        getChildrenIds(): Common.NodeId[];
-        getBaseId(): Common.NodeId;
-        isValidNewBase(basePath: Common.Path): boolean;
-        isValidNewParent(parentPath: Common.Path): boolean;
-        getInheritorIds(): Common.NodeId[];
-        getAttribute(name: Common.Name): Common.OutAttr;
-        getOwnAttribute(name: Common.Name): Common.OutAttr;
-        getEditableAttribute(name: Common.Name): Common.OutAttr;
-        getOwnEditableAttribute(name: Common.Name): Common.OutAttr;
-        getRegistry(name: Common.Name): Common.Registry;
-        getOwnRegistry(name: Common.Name): Common.Registry;
-        getEditableRegistry(name: Common.Name): Common.Registry;
-        getOwnEditableRegistry(name: Common.Name): Common.Registry;
+        getChildrenIds(): GmeCommon.NodeId[];
+        getBaseId(): GmeCommon.NodeId;
+        isValidNewBase(basePath: GmeCommon.Path): boolean;
+        isValidNewParent(parentPath: GmeCommon.Path): boolean;
+        getInheritorIds(): GmeCommon.NodeId[];
+        getAttribute(name: GmeCommon.Name): GmeCommon.OutAttr;
+        getOwnAttribute(name: GmeCommon.Name): GmeCommon.OutAttr;
+        getEditableAttribute(name: GmeCommon.Name): GmeCommon.OutAttr;
+        getOwnEditableAttribute(name: GmeCommon.Name): GmeCommon.OutAttr;
+        getRegistry(name: GmeCommon.Name): GmeCommon.Registry;
+        getOwnRegistry(name: GmeCommon.Name): GmeCommon.Registry;
+        getEditableRegistry(name: GmeCommon.Name): GmeCommon.Registry;
+        getOwnEditableRegistry(name: GmeCommon.Name): GmeCommon.Registry;
 
-        getPointer(name: Common.Name): Common.Pointer;
-        getPointerId(name: Common.Name): Common.SetId;
-        getOwnPointer(name: Common.Name): Common.Pointer;
-        getOwnPointerId(name: Common.Name): Common.SetId;
-        getPointerNames(): Common.Name[];
-        getOwnPointerNames(): Common.Name[];
+        getPointer(name: GmeCommon.Name): GmeCommon.Pointer;
+        getPointerId(name: GmeCommon.Name): GmeCommon.SetId;
+        getOwnPointer(name: GmeCommon.Name): GmeCommon.Pointer;
+        getOwnPointerId(name: GmeCommon.Name): GmeCommon.SetId;
+        getPointerNames(): GmeCommon.Name[];
+        getOwnPointerNames(): GmeCommon.Name[];
 
-        getAttributeNames(): Common.Name[];
-        getValidAttributeNames(): Common.Name[];
-        getOwnAttributeNames(): Common.Name[];
-        getOwnValidAttributeNames(): Common.Name[];
+        getAttributeNames(): GmeCommon.Name[];
+        getValidAttributeNames(): GmeCommon.Name[];
+        getOwnAttributeNames(): GmeCommon.Name[];
+        getOwnValidAttributeNames(): GmeCommon.Name[];
 
-        getAttributeMeta(name: Common.Name): Common.AttrMeta;
-        getRegistryNames(): Common.Name[];
-        getOwnRegistryNames(): Common.Name[];
+        getAttributeMeta(name: GmeCommon.Name): GmeCommon.AttrMeta;
+        getRegistryNames(): GmeCommon.Name[];
+        getOwnRegistryNames(): GmeCommon.Name[];
 
         /** Set */
-        getMemberIds(setId: Common.SetId): Common.Path[];
-        getSetNames(): Common.Name[];
-        getMemberAttributeNames(setId: Common.SetId, memberId: Common.MemberId): Common.Name[];
-        getMemberAttribute(setId: Common.SetId, memberId: Common.MemberId): Common.OutAttr;
-        getEditableMemberAttribute(setId: Common.SetId, memberId: Common.MemberId, name: Common.Name): Common.OutAttr;
-        getMemberRegistryNames(setId: Common.SetId, memberId: Common.MemberId): Common.Name[];
-        getMemberRegistry(setId: Common.SetId, memberId: Common.MemberId, name: Common.Name): Common.Registry;
-        getEditableMemberRegistry(setId: Common.SetId, memberId: Common.MemberId, name: Common.Name): Common.Registry;
+        getMemberIds(setId: GmeCommon.SetId): GmeCommon.Path[];
+        getSetNames(): GmeCommon.Name[];
+        getMemberAttributeNames(setId: GmeCommon.SetId, memberId: GmeCommon.MemberId): GmeCommon.Name[];
+        getMemberAttribute(setId: GmeCommon.SetId, memberId: GmeCommon.MemberId): GmeCommon.OutAttr;
+        getEditableMemberAttribute(setId: GmeCommon.SetId, memberId: GmeCommon.MemberId, name: GmeCommon.Name): GmeCommon.OutAttr;
+        getMemberRegistryNames(setId: GmeCommon.SetId, memberId: GmeCommon.MemberId): GmeCommon.Name[];
+        getMemberRegistry(setId: GmeCommon.SetId, memberId: GmeCommon.MemberId, name: GmeCommon.Name): GmeCommon.Registry;
+        getEditableMemberRegistry(setId: GmeCommon.SetId, memberId: GmeCommon.MemberId, name: GmeCommon.Name): GmeCommon.Registry;
 
         /** META */
-        getValidChildrenTypes(): Common.NodeId[];
-        getValildAttributeNames(): Common.Name[];
-        isValidAttributeValueOf(name: Common.Name, value: any): boolean;
-        getValidPointerNames(): Common.Name[];
-        getValidSetNames(): Common.Name[];
-        getConstraintNames(): Common.Name[];
-        getOwnConstraintNames(): Common.Name[];
-        getConstraint(name: Common.Name): Constraint;
+        getValidChildrenTypes(): GmeCommon.NodeId[];
+        getValildAttributeNames(): GmeCommon.Name[];
+        isValidAttributeValueOf(name: GmeCommon.Name, value: any): boolean;
+        getValidPointerNames(): GmeCommon.Name[];
+        getValidSetNames(): GmeCommon.Name[];
+        getConstraintNames(): GmeCommon.Name[];
+        getOwnConstraintNames(): GmeCommon.Name[];
+        getConstraint(name: GmeCommon.Name): Constraint;
         toString(): string;
 
-        getCollectionPaths(name: Common.Name): Common.Path[];
-        getInstancePaths(): Common.Path[];
-        getJsonMeta(): Common.Metadata[];
+        getCollectionPaths(name: GmeCommon.Name): GmeCommon.Path[];
+        getInstancePaths(): GmeCommon.Path[];
+        getJsonMeta(): GmeCommon.Metadata[];
 
         isConnection(): boolean;
         isAbstract(): boolean;
         isLibraryRoot(): boolean;
         isLibraryElement(): boolean;
-        getFullyQualifiedName(): Common.Name;
-        getNamespace(): Common.Name;
+        getFullyQualifiedName(): GmeCommon.Name;
+        getNamespace(): GmeCommon.Name;
 
         getLibraryGuid(): GUID;
-        getCrosscutsInfo(): Common.CrosscutsInfo;
-        getValidChildrenTypesDetailed(aspect: Common.Aspect, noFilter: boolean): Common.Dictionary<any>;
-        getValidSetMemberTypesDetailed(setName: Common.Name): { [key: string]: any };
+        getCrosscutsInfo(): GmeCommon.CrosscutsInfo;
+        getValidChildrenTypesDetailed(aspect: GmeCommon.Aspect, noFilter: boolean): GmeCommon.Dictionary<any>;
+        getValidSetMemberTypesDetailed(setName: GmeCommon.Name): { [key: string]: any };
         getMetaTypeId(): Node | null;
         getBaseTypeId(): Node | null;
         isMetaNode(): boolean;
-        isTypeOf(typePath: Common.Path): boolean;
-        isValidChildOf(parentPath: Common.Path): boolean;
-        getValidChildrenIds(): Common.NodeId[];
-        isValidTargetOf(sourcePath: Common.Path, name: Common.Name): boolean;
-        getValidAspectNames(): Common.Name[];
-        getOwnValidAspectNames(): Common.Name[];
-        getAspectMeta(): Common.Metadata;
+        isTypeOf(typePath: GmeCommon.Path): boolean;
+        isValidChildOf(parentPath: GmeCommon.Path): boolean;
+        getValidChildrenIds(): GmeCommon.NodeId[];
+        isValidTargetOf(sourcePath: GmeCommon.Path, name: GmeCommon.Name): boolean;
+        getValidAspectNames(): GmeCommon.Name[];
+        getOwnValidAspectNames(): GmeCommon.Name[];
+        getAspectMeta(): GmeCommon.Metadata;
 
         /** MixIns */
-        getMixinPaths(): Common.Path[];
-        canSetAsMixin(mixinPath: Common.Path): boolean;
+        getMixinPaths(): GmeCommon.Path[];
+        canSetAsMixin(mixinPath: GmeCommon.Path): boolean;
         isReadOnly(): boolean;
 
     }
@@ -2827,12 +3072,12 @@ declare namespace Core {
  * This interface prescribes that configuration file.
  * 
  */
-declare namespace Config {
+declare namespace GmeConfig {
 
 
     export interface ConfigItem {
         // a unique name for the configuration item
-        name: Common.Name;
+        name: GmeCommon.Name;
         // a human comprehensible name
         displayName: string;
         // a detailed description fo the item
@@ -2878,7 +3123,7 @@ declare namespace Config {
         /** Client related settings. */
         client: LogOptions;
         /** Client related settings. */
-        core: Classes.Core;
+        core: GmeClasses.Core;
         /** Enables debug mode. */
         public debug: boolean;
         /** Executor related settings. */
@@ -2892,7 +3137,7 @@ declare namespace Config {
             allowServerExecution: boolean
         };
         /** Additional paths to for requirejs. */
-        requirejsPaths: Common.Dictionary<string>;
+        requirejsPaths: GmeCommon.Dictionary<string>;
         /** REST related settings. */
         rest: any;
         /** Seed related settings. */
@@ -2922,7 +3167,7 @@ declare namespace Config {
     }
 
 
-    export class PluginConfig extends Config.GmeConfig {
+    export class PluginConfig extends GmeConfig {
         [propName: string]: any;
     }
 
@@ -2930,7 +3175,7 @@ declare namespace Config {
 
 }
 
-declare namespace Storage {
+declare namespace GmeStorage {
     export interface ErrorOnlyCallback {
         (err: Error | null): void;
     }
@@ -2944,7 +3189,7 @@ declare namespace Storage {
         /**
          * Hash of the commit object, a.k.a commitHash.
          */
-        _id: Storage.CommitHash;
+        _id: GmeStorage.CommitHash;
         /**
          * Hash of the associated root object, a.k.a. rootHash.
          */
@@ -2952,7 +3197,7 @@ declare namespace Storage {
         /**
          * Commits from where this commit evolved.
          */
-        parents: Storage.CommitHash[];
+        parents: GmeStorage.CommitHash[];
         /**
          * When the commit object was created (new Date()).getTime().
          */
@@ -2971,18 +3216,13 @@ declare namespace Storage {
         type: string;
     }
 
-    export interface CommitObjectCallback {
-        (err: Error | null, result: CommitObject): void;
-    }
 
     export interface CommitResult {
         /** The commitHash for the commit. */
         hash: CommitHash;
         status: "SYNCED" | "FORKED" | "CANCELED" | undefined;
     }
-    export interface CommitResultCallback {
-        (err: Error | null, result: CommitResult): void;
-    }
+
 }
 
 
@@ -3011,7 +3251,7 @@ declare module "webgme/v1" {
         containment: JsonContainment; // guid tree of hashes
         bases: any; //
         nodes: any;
-        relids: Common.RelId[];
+        relids: GmeCommon.RelId[];
         metaSheets: any;
     }
 }
