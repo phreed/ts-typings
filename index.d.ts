@@ -1914,9 +1914,10 @@ declare namespace GmeClasses {
         */
         insertObject(obj: GmeStorage.CommitObject, stackedObjects: GmeCommon.Dictionary<Core.DataObject>): void;
         /**
-         * Try to create the full object from the patch object by looking for the base object in the cache.
-         * If the base has been found it applies the patch and inserts the result. If any step fails it simply
-         * ignores the insert.
+         * Try to create the full object from the patch 
+         * object by looking for the base object in the cache.
+         * If the base has been found it applies the patch and inserts the result. 
+         * If any step fails it simply ignores the insert.
          *
          * @param {module:Storage~CommitObject|module:Core~ObjectData} obj - Object to be inserted in database.
          * @func
@@ -1932,7 +1933,7 @@ declare namespace GmeClasses {
          * @param {ProjectInterface~loadObjectCallback} callback - Invoked when object is loaded.
          * @func
          */
-        loadObject(key: string, callback: GmeCommon.LoadObjectCallback): void;
+        loadObject(key: string, callback: GmeCommon.ResultCallback<GmeCommon.LoadObject>): void;
         /**
          * Collects the objects from the server and pre-loads them into the cache
          * making the load of multiple objects faster.
@@ -2090,16 +2091,18 @@ declare namespace GmeClasses {
          */
         getHistory: {
             (start: string | GmeStorage.CommitHash | string[], number: number,
-                callback: GmeCommon.ResultCallback<GmeStorage.CommitObject>): void;
+                callback: GmeCommon.ResultCallback<Array<GmeStorage.CommitObject>>): void;
             (start: string | GmeStorage.CommitHash | string[], number: number):
-                Promise<GmeStorage.CommitObject>;
+                Promise<Array<GmeStorage.CommitObject>>;
         }
         /**
          * Retrieves and array of the latest (sorted by timestamp) commits for the project.
-         * If timestamp is given it will get <b>number</b> of commits strictly before <b>before</b>.
+         * If timestamp is given it will get <b>number</b> of commits strictly <b>before</b>.
          * If commit hash is specified that commit will be included too.
-         * <br> N.B. due to slight time differences on different machines, ancestors may be returned before
-         * their descendants. Unless looking for 'headless' commits 'getHistory' is the preferred method.
+         * <br> N.B. due to slight time differences on different machines, 
+         * ancestors may be returned before
+         * their descendants. 
+         * Unless looking for 'headless' commits 'getHistory' is the preferred method.
          * @param {number|module:Storage~CommitHash} before - Timestamp or commitHash to load history from.
          * @param {number} number - Number of commits to load.
          * @param {function} [callback] - if provided no promise will be returned.
@@ -2109,8 +2112,8 @@ declare namespace GmeClasses {
          * On error the promise will be rejected with {@link Error} <b>error</b>.
          */
         getCommits: {
-            (before: number | GmeStorage.CommitHash, number: number, callback: GmeCommon.ResultCallback<GmeStorage.CommitObject>): void;
-            (before: number | GmeStorage.CommitHash, number: number): Promise<GmeStorage.CommitObject>;
+            (before: number | GmeStorage.CommitHash, number: number, callback: GmeCommon.ResultCallback<GmeStorage.CommitObject[]>): void;
+            (before: number | GmeStorage.CommitHash, number: number): Promise<GmeStorage.CommitObject[]>;
         };
         /**
          * Creates a new tag pointing to the provided commit hash.
@@ -2210,9 +2213,9 @@ declare namespace GmeClasses {
          */
         getBranches: {
             /** On success the callback will run with Object.module:Storage~CommitHash result. */
-            (callback: GmeStorage.CommitHashCallback): void;
+            (callback: GmeCommon.ResultCallback<GmeCommon.Dictionary<GmeStorage.CommitHash>>): void;
             /** On success the promise will be resolved with Object.module:Storage~CommitHash> result. */
-            (): Promise<GmeStorage.CommitHash>;
+            (): Promise<GmeCommon.Dictionary<GmeStorage.CommitHash>>;
         }
         /**
          * Retrieves the commit hash for the head of the branch.
@@ -2252,8 +2255,8 @@ declare namespace GmeClasses {
          *  2. By their timestamp.
          */
         getHistory: {
-            (start: GmeCommon.ProjectStart, number: number, callback: GmeCommon.ResultCallback<GmeStorage.CommitObject>): void;
-            (start: GmeCommon.ProjectStart, number: number): Promise<GmeStorage.CommitObject>;
+            (start: GmeCommon.ProjectStart, number: number, callback: GmeCommon.ResultCallback<Array<GmeStorage.CommitObject>>): void;
+            (start: GmeCommon.ProjectStart, number: number): Promise<Array<GmeStorage.CommitObject>>;
         }
         /**
          * Retrieves all tags and their commits hashes within the project.
@@ -2347,7 +2350,7 @@ declare namespace GmePlugin {
         namespace: string;
         notificationHandlers: any[];
         pluginMetadata: GmeCommon.Metadata;
-        project: GmeClasses.ProjectInterface;
+        project: GmeClasses.Project;
         result: GmeClasses.Result;
         rootNode: Core.Node;
 
@@ -2767,7 +2770,7 @@ declare namespace GmeCommon {
      * @param {Error} err - If error occurred.
      * @param {module:Storage~CommitObject|module:Core~ObjectData} object - Object loaded from database, e.g. a commit object.
      */
-    type LoadObjectCallback = GmeCommon.ResultCallback<GmeStorage.CommitObject | Core.DataObject>;
+    type LoadObject = GmeStorage.CommitObject | Core.DataObject;
 }
 
 
