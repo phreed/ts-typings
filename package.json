@@ -47,9 +47,6 @@
       "email": "fred.eisele@vanderbilt.edu"
     }
   ],
-  "os": [
-    "linux"
-  ],
   "optionalDependencies": {},
   "preferGlobal": true,
   "private": false,
