@@ -1,30 +1,35 @@
-// Type definitions for <SAMPLE> v0.0.1 
-// Project: https://github.com/<SAMPLE>.js
+// Type definitions for jsedn v0.1.0 
+// Project: https://github.com/shawnxcode/jsedn
 // Definitions by: Fred Eisele <https://github.com/phreed>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
 /// <reference types="node" />
 
 /**
-### 0.0.1 Changelog (https://github.com/<SAMPLE>)
-
-#### TODO:
-
-Match samples from README.md
-
-- [x] do it.
+### 0.1.0 Changelog (https://github.com/<SAMPLE>)
 
 */
 
-declare module "sample" {
-    import * as fs from "fs";
+import * as fs from "fs";
 
-    namespace Sample {
+declare namespace JSEDN {
+    
+   function parse(ednString: string): EDN;
 
-        type Dictionary = { [key: string]: any };
+   class Vector {
+     new (indexed: any);
+   }
 
-    }
+   class KW {
+     new (name: string);
+   }
 
-    export = Sample;
+   interface EDN {
+       at(vector: Vector): EDN;
+       at(kw: KW): EDN;
+   }
+
 }
+export = JSEDN;
+
 

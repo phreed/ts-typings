@@ -17,11 +17,9 @@
 
 */
 
-import * as Sample from "sample";
-import * as fs from "fs";
-import * as stream from "stream";
+import edn = require("jsedn");
 
-function test_it() {
+let map = edn.parse("{:a 5 [1 2] {:name :mike :age 40}}");
+console.log(map.at(new edn.Vector([1, 2])).at(edn.kw(":name")));
 
-}
 

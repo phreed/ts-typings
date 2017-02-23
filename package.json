@@ -1,7 +1,7 @@
 {
-  "name": "@types/SAMPLE",
-  "version": "0.0.1",
-  "description": "A set of TypeScript definitions for SAMPLE",
+  "name": "@types/jsedn",
+  "version": "0.1.0",
+  "description": "A set of TypeScript definitions for jsedn",
   "main": "",
   "typings": "index.d.ts",
   "files": [
@@ -9,14 +9,14 @@
   ],
   "keywords": [
     "typescript",
-    "SAMPLE",
+    "jsedn",
     "defininition"
   ],
   "directories": {
     "test": "test"
   },
   "dependencies": {
-    "typescript": "^2.1.1"
+    "typescript": "^2.2.1"
   },
   "devDependencies": {
     "ts-node": "^1.7.0"
