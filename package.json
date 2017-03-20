@@ -1,6 +1,6 @@
 {
   "name": "@types/kafka-node",
-  "version": "0.0.1",
+  "version": "1.3.3",
   "description": "A set of TypeScript definitions for kafka-node",
   "main": "",
   "typings": "index.d.ts",
